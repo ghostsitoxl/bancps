@@ -1,0 +1,337 @@
+//función para obtener movimientos y todos los datos de una cuenta
+function getAccount(idProducto)
+{
+	var fields = {
+            numberAccount: idProducto,            
+    }
+    var $form = $('<form>', {
+        action: appname+'/account',
+        method: 'post'
+    }).append(
+            $.map(fields, function (val, key) {
+                return $('<input>').attr({
+                    type: "hidden",
+                    name: key,
+                    value: val
+                })
+            })
+    )
+    $form.appendTo('body').submit();
+}
+/************************************************************************
+ *  
+ *  Función que llama al controller mediante ajaxpara mostrar los 
+ *  detalles de movimiento del registro del producto pasado como 
+ *  parámetro y lo muestra en pantalla.
+ *  idModal: id del modal a mostrar.
+ *  idContent: id del contenedor donde injectar el html retornado como respuesta.
+ *  fileNameProduct: nombre del archivo a descargar.
+ *  userCode, date, hour, sequenceNumber: parámetros que necesita el servicio API
+ *  se envía en un wrapper.
+ *  url: url del método a llamar en el controller.
+ ************************************************************************/
+function getMovementDetail(idModal, idContent, userCode, date, hour, dateFlag, hourFlag, sequenceNumber,ref, url, swift)
+{
+	console.log('Swift ', swift)
+	var numberAccount = $("#numberAccount").val();
+	$.ajax({
+		type:"POST",
+		url: url,
+		data: {
+			numberProduct: numberAccount,
+			userCode: userCode,
+			date: date,	
+			hour: hour,
+			dateFlag: dateFlag,
+			hourFlag: hourFlag,
+			sequenceNumber: sequenceNumber,
+			refVoucher : ref,
+			swift: swift
+		}					
+	}).done(function(data){
+		$("#"+idContent).html(data);
+		$("#"+idModal).modal("show");
+	}).fail(function(request, status, error){
+		var errorData = request.responseJSON;
+		ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);		
+	});		
+}
+
+/************************************************************************
+ *  
+ *  Función para descargar en pdf los detalles del movimiento del producto.
+ *  numberProduct: número de la cuenta.
+ *  fileNameProduct: nombre del archivo a descargar.
+ *  userCode, date, hour, sequenceNumber: parámetros que necesita el servicio API
+ *  se envía en un wrapper.
+ *  url: url del método a llamar en el controller.
+ ************************************************************************/
+function downloadMovementDetails(numberProduct, fileNameProduct, userCode, movementDate, hour, dateFlag, hourFlag, sequenceNumber,refVoucher, url)
+{		
+	var date=new Date();
+    cDay = date.getDate();
+    cMonth = date.getMonth();
+    cMonth = cMonth+1;
+    if((String(cDay)).length==1)
+    {
+    	cDay = '0'+cDay;
+    }
+    if((String(cMonth)).length==1)
+    {
+    	cMonth='0'+cMonth;
+    }
+	var today = cDay+cMonth+date.getFullYear()+date.getHours()+date.getMinutes()+date.getSeconds();
+    var params = 'numberProduct=' + numberProduct + '&date=' + movementDate + '&dateFlag=' + dateFlag + '&userCode=' +
+    	userCode + '&hour=' + hour + '&hourFlag=' + hourFlag + '&sequenceNumber=' + sequenceNumber + '&refVoucher='+ refVoucher;
+    var req = new XMLHttpRequest();
+    req.open("POST", url, true);
+    req.responseType = "blob";
+    req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    req.onload = function () {
+    	if(req.status === 200){
+    		 var blob = req.response;
+    	     var fileName = fileNameProduct + numberProduct + '-' + today +'.pdf';
+    	     downloadAllReport(blob, fileName);
+    	}else{
+    		showModalGenericError("Error al generar el Comprobante");
+    	}
+    };
+    req.send(params);	
+}
+
+function downloadMovementZIP(numberProduct,typeMovement, movementDate, url){
+	{
+            
+		var date=new Date();
+		cDay = date.getDate();
+		cMonth = date.getMonth();
+		cMonth = cMonth+1;
+		if((String(cDay)).length==1)
+		{
+			cDay = '0'+cDay;
+		}
+		if((String(cMonth)).length==1)
+		{
+			cMonth='0'+cMonth;
+		}
+		var today = cDay+cMonth+date.getFullYear()+date.getHours()+date.getMinutes()+date.getSeconds();
+		var params = 'numberProduct=' + numberProduct + '&date=' + movementDate + "&typeMovement=" + typeMovement;
+		var req = new XMLHttpRequest();
+		req.open("POST", url, true);
+		req.responseType = "blob";
+		req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+		req.onload = function () {
+			if(req.status === 200){
+				var blob = req.response;
+				var fileName = 'detalles-movimiento-' + numberProduct + '-' + today +'.zip';
+				downloadAllReport(blob, fileName);
+			}else{
+				showModalGenericError("Error al generar el ZIP");
+			}
+		};
+		req.send(params);
+	}
+}
+
+function downloadMovementInterZIP(numberProduct,typeMovement, movementDate, url){
+	{
+            
+		var date=new Date();
+		cDay = date.getDate();
+		cMonth = date.getMonth();
+		cMonth = cMonth+1;
+		if((String(cDay)).length==1)
+		{
+			cDay = '0'+cDay;
+		}
+		if((String(cMonth)).length==1)
+		{
+			cMonth='0'+cMonth;
+		}
+		var today = cDay+cMonth+date.getFullYear()+date.getHours()+date.getMinutes()+date.getSeconds();
+		var params = 'numberProduct=' + numberProduct + '&date=' + movementDate + "&typeMovement=" + typeMovement;
+		var req = new XMLHttpRequest();
+		req.open("POST", url, true);
+		req.responseType = "blob";
+		req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+		req.onload = function () {
+			if(req.status === 200){
+				var blob = req.response;
+				var fileName = 'detalles-movimiento-' + numberProduct + '-' + today +'.zip';
+				downloadAllReport(blob, fileName);
+			}else{
+				showModalGenericError("Error al generar el ZIP");
+			}
+		};
+		req.send(params);
+	}
+}
+
+function downloadInNewTab(blob, fileName) {
+	var blob = new window.Blob([blob], {type: 'application/pdf'});
+	window.URL = window.URL || window.webkitURL;
+	var url = window.URL.createObjectURL(blob);
+	window.open(url);
+}
+
+//función que envia el numero de cuenta 
+function getRequestExtractsMail(accountNumber){
+	var fields = {
+            numberAccount: accountNumber,            
+    }
+    var $form = $('<form>', {
+        action: appname+'/invoice/requestExtractsMail',
+        method: 'post'
+    }).append(
+            $.map(fields, function (val, key) {
+                return $('<input>').attr({
+                    type: "hidden",
+                    name: key,
+                    value: val
+                })
+            })
+    )
+    $form.appendTo('body').submit();
+
+}
+
+
+function saveRequestExtractsMail(checkVal,mailInvoiceSelected,
+		mailExtractSelected,schedule,mediumInvoice,mediumExtract,frequency,format){
+	var info = [];
+	var invoice = {};
+	var extract = {};
+	if(mediumInvoice === "DESCARGA"){
+		mailInvoiceSelected = null;
+	}
+	if(mediumExtract === "DESCARGA"){
+		mailExtractSelected = null;
+	}
+	invoice.correoElectronico = mailInvoiceSelected;
+	invoice.medioEnvio = mediumInvoice;
+	invoice.tipoComprobante = "FACTURA";
+	extract.correoElectronico = mailExtractSelected;
+	extract.medioEnvio = mediumExtract;
+	extract.tipoComprobante = "EXTRACTO";
+	info.push(invoice);
+	info.push(extract);
+	$.ajax({
+		type:"POST",
+		url:  appname+'/invoice/modifyRequestExtractsMail',
+		data: {
+			schedule: schedule,
+			status: checkVal,
+			frequency: frequency,
+			format: format,
+			info : JSON.stringify(info)
+		}					
+	}).done(function(data){		
+		var msg = 'Datos guardados correctamente';
+		showModalDataActualization(msg);
+	}).fail(function(request, status, error){
+		var errorData = request.responseJSON;
+		ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);		
+	});
+}
+
+function verifyDataExtractEmail(mediumInvoice,mediumExtract,mailInvoiceSelected,mailExtractSelected,frequency,schedule,format){
+	var obj = {status:"ok",msg:""};
+	
+	if(mediumInvoice === "0"  && mailInvoiceSelected !== undefined){
+		obj.status = "error";
+		obj.msg = "Debe seleccionar un Medio de Envio para la Factura";
+		return obj;
+	}else if(mediumInvoice === "CORREO" &&  mailInvoiceSelected === undefined){
+		obj.status = "error";
+		obj.msg = "Debe seleccionar un Correo para la Factura";
+		return obj;
+	}else if(mediumInvoice === "0" && mailInvoiceSelected === undefined){
+		obj.status = "error";
+		obj.msg = "Debe seleccionar un Medio de Envio para la Factura";
+		return obj;
+	}
+	if(mediumExtract === "0"  && mailExtractSelected !== undefined){
+		obj.status = "error";
+		obj.msg = "Debe seleccionar un Medio de Envio para el Extracto";
+		return obj;
+	}else if(mediumExtract === "CORREO" &&  mailExtractSelected === undefined){
+		obj.status = "error";
+		obj.msg = "Debe seleccionar un Correo para el Extracto";
+		return obj;
+	}else if(mediumExtract === "0" && mailExtractSelected === undefined){
+		obj.status = "error";
+		obj.msg = "Debe seleccionar un Medio de Envio para el Extracto";
+		return obj;
+	}
+	if(frequency === "0"){
+		obj.status = "error";
+		obj.msg = "Debe seleccionar una Frecuencia";
+		return obj;
+	}else if(frequency === "DIARIA" && schedule === "0"){
+		obj.status = "error";
+		obj.msg = "Debe seleccionar un Horario de Envio";
+		return obj;
+	}
+	
+	if(format === "0"){
+		obj.status = "error";
+		obj.msg = "Debe seleccionar un formato de Impresión";
+		return obj;
+	}
+	return obj;
+}
+
+function getDepositConfirm(accountSelected){
+	var fields = {
+            numberAccount: accountSelected,            
+    }
+    var $form = $('<form>', {
+        action: appname+'/deposit/confirm',
+        method: 'post'
+    }).append(
+            $.map(fields, function (val, key) {
+                return $('<input>').attr({
+                    type: "hidden",
+                    name: key,
+                    value: val
+                })
+            })
+    )
+    $form.appendTo('body').submit();
+}
+function showModalDepositConfirm(){
+	$("#content-modal-deposit-confirm").removeClass("hidden");
+	$("#contentModalDepositConfirm").modal("show");
+}
+
+function downloadMovementSwift(numberProduct, url) {
+	var date=new Date();
+	cDay = date.getDate();
+	cMonth = date.getMonth();
+	cMonth = cMonth+1;
+	if((String(cDay)).length==1)
+	{
+		cDay = '0'+cDay;
+	}
+	if((String(cMonth)).length==1)
+	{
+		cMonth='0'+cMonth;
+	}
+	var today = cDay+cMonth+date.getFullYear()+date.getHours()+date.getMinutes()+date.getSeconds();
+	var params = 'numberAccount=' + numberProduct;
+	var req = new XMLHttpRequest();
+	req.open("POST", url, true);
+	req.responseType = "blob";
+	req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	req.onload = function () {
+		if(req.status === 200){
+			var blob = req.response;
+			var fileName = "comprobante-swift-" + numberProduct + '-' + today +'.pdf';
+			downloadAllReport(blob, fileName);
+		}else{
+			console.log(req.response)
+			showModalGenericError("No se pudo encontrar el comprobante");
+		}
+	};
+	req.send(params);
+}

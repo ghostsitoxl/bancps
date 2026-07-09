@@ -1,0 +1,471 @@
+CARD_TEXT = "";
+ACCOUNT_TEXT = "";
+CARD_SELECTED = false;
+PAY_TEXT = "";
+/********************************************************************
+ * función para obtener movimientos y todos los datos de una tarjeta
+ * 
+ * ******************************************************************/
+function getCard(idProducto)
+{
+	var fields = {
+            numberProduct: idProducto,            
+    }
+    var $form = $('<form>', {
+        action: appname+'/card',
+        method: 'post'
+    }).append(
+            $.map(fields, function (val, key) {
+                return $('<input>').attr({
+                    type: "hidden",
+                    name: key,
+                    value: val
+                })
+            })
+    )
+    $form.appendTo('body').submit();
+}
+
+function getCards(){
+	if ($("#cards").val() != '[]' && $("#cards").val() != "" && $("#cards").val() != '{}') {
+		location.href= appname+ '/card/pay';
+	}
+	
+}
+
+function getCashAdvance(){
+    if ($("#cards").val() != '[]' && $("#cards").val() != "" && $("#cards").val() != '{}') {
+        location.href= appname+ '/card/cash-advance';
+    }
+
+}
+function payCardDirect(cardKey){
+	if(cardKey !== ""){
+		location.href = appname + "/card/pay/accounts?numberProduct="+cardKey;
+	}
+}
+function cashAdvanceDirect(cardKey){
+    if(cardKey !== ""){
+        location.href = appname + "/card/cash-advance/accounts?numberProduct="+cardKey;
+    }
+}
+function cashAdvance(cardKey){
+    $(".loader").removeClass("hidden");
+    $.ajax({
+        type: "POST",
+        url: appname + "/card/cash-advance/accounts",
+        data: {
+            numberProduct : cardKey
+        }
+    }).done(function (data) {
+        $(".loader").addClass("hidden");
+        $("#step-1").addClass("hidden");
+        $("#step-2").removeClass("hidden");
+        $("#step-2").html(data);
+        CARD_TEXT = $("#cardDescription").text();
+        var height = $(".box-step-entrust-pointer.step-1-left").height();
+        $(".heigth-right-step-entrust.step-1-right").height(height);
+
+        var height1 = $(".pos-2-left").height();
+        //height1 -= 20;
+        $(".pos-2-right").height(height1);
+        $("div.step-2-right").css("height","100%");
+        if(CARD_SELECTED){
+            $(".step-1-left").removeAttr("onclick");
+        }
+
+    }).fail(function (request, status, error) {
+        $(".loader").addClass("hidden");
+        var errorData = request.responseJSON;
+        ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+    })
+}
+function payCard(cardKey){
+	$(".loader").removeClass("hidden");
+	$.ajax({
+        type: "POST",
+        url: appname + "/card/pay/accounts",
+        data: {
+        	numberProduct : cardKey
+        }
+    }).done(function (data) {
+    	$(".loader").addClass("hidden");
+        $("#step-1").addClass("hidden");
+        $("#step-2").removeClass("hidden");
+        $("#step-2").html(data);
+        CARD_TEXT = $("#cardDescription").text();
+        var height = $(".box-step-entrust-pointer.step-1-left").height();
+        $(".heigth-right-step-entrust.step-1-right").height(height);
+        
+        var height1 = $(".pos-2-left").height();
+        //height1 -= 20;
+        $(".pos-2-right").height(height1);
+        $("div.step-2-right").css("height","100%");
+        if(CARD_SELECTED){
+        	$(".step-1-left").removeAttr("onclick");
+        }
+        
+    }).fail(function (request, status, error) {
+    	$(".loader").addClass("hidden");
+        var errorData = request.responseJSON;
+        ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+    })
+}
+function cashAdvanceAccount(accountNumber){
+    ACCOUNT_TEXT = $("#numberProduct option:selected").text();
+    $(".loader").removeClass("hidden");
+    $.ajax({
+        type: "POST",
+        url: appname + "/card/cash-advance/details",
+        data: {
+            account : accountNumber
+        }
+    }).done(function (data) {
+        $("#step-1").addClass("hidden");
+        $("#step-2").addClass("hidden");
+        $("#step-3").removeClass("hidden");
+        $(".loader").addClass("hidden");
+        $("#step-3").html(data);
+        $(".cardDescription").text(CARD_TEXT);
+        $(".accountDescription").text(ACCOUNT_TEXT);
+        if(CARD_SELECTED){
+            $(".card-step-1-left").removeAttr("onclick");
+        }
+        var height = $(".card-step-1-left").height();
+        $(".card-step-1-right").height(height);
+
+        var height1 = $(".card-step-2-left").height();
+        $(".card-step-2-right").height(height1);
+
+        var height2 = $(".card-step-3-left").height();
+        $(".card-step-3-right").height(height2);
+
+    }).fail(function (request, status, error) {
+        $(".loader").addClass("hidden");
+        var errorData = request.responseJSON;
+        ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+    })
+
+}
+function payCardAccount(accountNumber){
+	ACCOUNT_TEXT = $("#numberProduct option:selected").text();
+	$(".loader").removeClass("hidden");
+	$.ajax({
+        type: "POST",
+        url: appname + "/card/pay/details",
+        data: {
+        	account : accountNumber
+        }
+    }).done(function (data) {
+        $("#step-1").addClass("hidden");
+        $("#step-2").addClass("hidden");
+        $("#step-3").removeClass("hidden");
+        $(".loader").addClass("hidden");
+        $("#step-3").html(data);
+        $(".cardDescription").text(CARD_TEXT);
+        $(".accountDescription").text(ACCOUNT_TEXT);
+        if(CARD_SELECTED){
+        	$(".card-step-1-left").removeAttr("onclick");
+        }
+        var height = $(".card-step-1-left").height();
+        $(".card-step-1-right").height(height);
+        
+        var height1 = $(".card-step-2-left").height();
+        $(".card-step-2-right").height(height1);
+        
+        var height2 = $(".card-step-3-left").height();
+        $(".card-step-3-right").height(height2); 
+        
+    }).fail(function (request, status, error) {
+    	$(".loader").addClass("hidden");
+        var errorData = request.responseJSON;
+        ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+    })
+}
+function verifyCardPay(amount,typePay){
+	
+	$("#step-3 #buttonCardPayDetails").attr("disabled","disabled");
+	$(".loader").removeClass("hidden");
+	$.ajax({
+        type: "POST",
+        url: appname + "/card/payverify",
+        data: {
+        	amount : amount,
+        	type : typePay
+        }
+    }).done(function (data) {
+    	$("#step-1").addClass("hidden");
+        $("#step-2").addClass("hidden");
+        $("#step-3").addClass("hidden");
+        $(".loader").addClass("hidden");
+        $("#step-4").removeClass("hidden");
+        $("#step-3 #buttonCardPayDetails").removeAttr("disabled");
+        $("#step-4").html(data);
+        $(".cardDescription").text(CARD_TEXT);
+        $(".accountDescription").text(ACCOUNT_TEXT);
+        if(CARD_SELECTED){
+        	$(".card-1-step-4-left").removeAttr("onclick");
+        }
+        var height = $(".card-1-step-4-left").height();
+        $(".card-1-step-4-right").height(height);
+        
+        var height1 = $(".card-2-step-4-left").height();
+        $(".card-2-step-4-right").height(height1);
+        
+        var height2 = $(".card-3-step-4-left").height();
+        $(".card-3-step-4-right").height(height2);
+        
+        var height3 = $(".card-step-4-left").height();
+        $(".card-step-4-right").height(height3);
+    }).fail(function (request, status, error) {
+    	$("#step-3 #buttonCardPayDetails").removeAttr("disabled");
+    	$(".loader").addClass("hidden");
+        var errorData = request.responseJSON;
+        ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+    })
+}
+function cardBackToStepOne(){
+	$("#step-1").removeClass("hidden");
+	 var height1 = $("div.step-1-left").height();
+     height1 = height1 + 20;
+     $("div.step-1-right").css('height', height1);
+    $("#step-2").addClass("hidden");
+    $("#step-3").addClass("hidden");
+    $("#step-4").addClass("hidden");
+    $("#step-5").addClass("hidden");
+}
+function cardBackToStepTwo(){
+	$("#step-1").addClass("hidden");
+    $("#step-2").removeClass("hidden");
+    $("#step-3").addClass("hidden");
+    $("#step-4").addClass("hidden");
+    $("#step-5").addClass("hidden");
+}
+function cardBackToStepTree(){
+	$("#step-1").addClass("hidden");
+    $("#step-2").addClass("hidden");
+    $("#step-3").removeClass("hidden");
+    $("#step-4").addClass("hidden");
+    $("#step-5").addClass("hidden");
+}
+function confirmCardPay(token,key,keyMethod){
+	PAY_TEXT = $(".cardPayDescription").text();
+	$("#step-4 #cardButtonTransactionalKey").attr("disabled","disabled");
+	$(".loader").removeClass("hidden");
+	$.ajax({
+        type: "POST",
+        url: appname + "/card/payconfirm",
+        data: {
+            dinamicKey: key,
+            tokenAprobacion: token,
+            keyAproval: keyMethod,
+        }
+    }).done(function (data) {
+        $("#step-1").addClass("hidden");
+        $("#step-2").addClass("hidden");
+        $("#step-3").addClass("hidden");
+        $("#step-4").addClass("hidden");
+        $(".loader").addClass("hidden");
+        $("#step-5").html(data);
+        $("#step-5").removeClass("hidden");
+        $("#step-4 #cardButtonTransactionalKey").removeAttr("disabled");
+        $(".cardDescription").text(CARD_TEXT);
+        $(".accountDescription").text(ACCOUNT_TEXT);
+        $(".cardPayDescription").text(PAY_TEXT);
+        var height = $(".card-1-step-5-left").height();
+        $(".card-1-step-5-right").height(height);
+        
+        var height1 = $(".card-2-step-5-left").height();
+        $(".card-2-step-5-right").height(height1);
+        
+        var height2 = $(".card-3-step-5-left").height();
+        $(".card-3-step-5-right").height(height2);
+        
+        var height3 = $(".card-4-step-5-left").height();
+        $(".card-4-step-5-right").height(height3);
+
+    }).fail(function (request, status, error) {
+    	$("#step-4 #cardButtonTransactionalKey").removeAttr("disabled");
+    	$(".loader").addClass("hidden");
+    	 var errorData = request.responseJSON;
+         ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+    })
+}
+
+function downloadCardReport(numberOperation){
+
+    var params = 'numberOperation=' + numberOperation;
+    var req = new XMLHttpRequest();
+    req.open("POST", appname + "/card/pay/pdfcard", true);
+    req.responseType = "blob";
+    req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    req.onload = function () {
+    	if(req.status === 200){
+    		 var blob = req.response;
+    	     var fileName = 'pago-tarjeta' + '-' + numberOperation + '.pdf';
+    	     downloadAllReport(blob, fileName);
+    	}else{
+    		showModalGenericError("Error al generar el Comprobante");
+    	}
+    };
+    req.send(params);
+
+
+}
+
+function downloadCashAdvanceReport(numberOperation){
+
+    var params = 'numberOperation=' + numberOperation;
+    var req = new XMLHttpRequest();
+    req.open("POST", appname + "/card/cash-advance/pdf", true);
+    req.responseType = "blob";
+    req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    req.onload = function () {
+        if(req.status === 200){
+            var blob = req.response;
+            var fileName = 'adelanto-efectivo' + '-' + numberOperation + '.pdf';
+            downloadAllReport(blob, fileName);
+        }else{
+            showModalGenericError("Error al generar el Comprobante");
+        }
+    };
+    req.send(params);
+
+
+}
+
+function sendCardEmail(email, subject, message, numberOperation,typeTransaction) {
+    $.ajax({
+        type: "POST",
+        url: appname + "/card/notifyemail",
+        data: {
+            email: email,
+            asunto: subject,
+            mensaje: message,
+            numberOperation: numberOperation,
+            typeTransaction: typeTransaction
+        }
+    }).done(function (data) {
+        $("#emailDiv").addClass("hidden");
+    }).fail(function (request, status, error) {
+        var errorData = request.responseJSON;
+        ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+    })
+}
+
+function sendCardSms(number, numberOperation,typeTransaction) {
+
+    $.ajax({
+        type: "POST",
+        url: appname + "/card/notifysms",
+        data: {
+            numberPhone: number,
+            numberOperation: numberOperation,
+            typeTransaction: typeTransaction
+
+        }
+    }).done(function (data) {
+        $("#smsDiv").addClass("hidden");
+    }).fail(function (request, status, error) {
+        var errorData = request.responseJSON;
+        ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+    })
+
+}
+
+function registerCashAdvance(amount,quota){
+
+    $("#step-3 #buttonCardPayDetails").attr("disabled","disabled");
+    $(".loader").removeClass("hidden");
+    $.ajax({
+        type: "POST",
+        url: appname + "/card/cash-advance/register",
+        data: {
+            amount : amount,
+            quota : quota
+        }
+    }).done(function (data) {
+        $("#step-1").addClass("hidden");
+        $("#step-2").addClass("hidden");
+        $("#step-3").addClass("hidden");
+        $(".loader").addClass("hidden");
+        $("#step-4").removeClass("hidden");
+        $("#step-3 #buttonCardPayDetails").removeAttr("disabled");
+        $("#step-4").html(data);
+        $(".cardDescription").text(CARD_TEXT);
+        $(".accountDescription").text(ACCOUNT_TEXT);
+        if(CARD_SELECTED){
+            $(".card-1-step-4-left").removeAttr("onclick");
+        }
+        var height = $(".card-1-step-4-left").height();
+        $(".card-1-step-4-right").height(height);
+
+        var height1 = $(".card-2-step-4-left").height();
+        $(".card-2-step-4-right").height(height1);
+
+        var height2 = $(".card-3-step-4-left").height();
+        $(".card-3-step-4-right").height(height2);
+
+        var height3 = $(".card-step-4-left").height();
+        $(".card-step-4-right").height(height3);
+    }).fail(function (request, status, error) {
+        $("#step-3 #buttonCardPayDetails").removeAttr("disabled");
+        $(".loader").addClass("hidden");
+        var errorData = request.responseJSON;
+        ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+    })
+}
+
+function confirmCashAdvance(token,key,keyMethod){
+    PAY_TEXT = $(".cardPayDescription").text();
+    $("#step-4 #cardButtonTransactionalKey").attr("disabled","disabled");
+    $(".loader").removeClass("hidden");
+    $.ajax({
+        type: "POST",
+        url: appname + "/card/cash-advance/confirm",
+        data: {
+            dinamicKey: key,
+            tokenAprobacion: token,
+            keyAproval: keyMethod,
+        }
+    }).done(function (data) {
+        $("#step-1").addClass("hidden");
+        $("#step-2").addClass("hidden");
+        $("#step-3").addClass("hidden");
+        $("#step-4").addClass("hidden");
+        $(".loader").addClass("hidden");
+        $("#step-5").html(data);
+        $("#step-5").removeClass("hidden");
+        $("#step-4 #cardButtonTransactionalKey").removeAttr("disabled");
+        $(".cardDescription").text(CARD_TEXT);
+        $(".accountDescription").text(ACCOUNT_TEXT);
+        $(".cardPayDescription").text(PAY_TEXT);
+        var height = $(".card-1-step-5-left").height();
+        $(".card-1-step-5-right").height(height);
+
+        var height1 = $(".card-2-step-5-left").height();
+        $(".card-2-step-5-right").height(height1);
+
+        var height2 = $(".card-3-step-5-left").height();
+        $(".card-3-step-5-right").height(height2);
+
+        var height3 = $(".card-4-step-5-left").height();
+        $(".card-4-step-5-right").height(height3);
+
+    }).fail(function (request, status, error) {
+        $("#step-4 #cardButtonTransactionalKey").removeAttr("disabled");
+        $(".loader").addClass("hidden");
+        var errorData = request.responseJSON;
+        ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+    })
+}
+
+function cashAdvanceValidateQuota(maxValue){
+    if(maxValue !== undefined && maxValue !== null && maxValue !== ""){
+        var oldValue = $("#cash-advance-quota").val();
+        oldValue = oldValue.substr(0,oldValue.length-1);
+        var value = parseInt($("#cash-advance-quota").val());
+        if(value > maxValue)
+            $("#cash-advance-quota").val(oldValue);
+    }
+}

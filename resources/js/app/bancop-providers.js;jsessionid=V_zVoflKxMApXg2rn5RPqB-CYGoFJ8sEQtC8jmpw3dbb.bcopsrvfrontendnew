@@ -1,0 +1,1122 @@
+var ACCOUNT_PROVIDER_DESCRIPTION = "";
+var DESCRIPTION_FILE = "";
+var COD_ENTE = "";
+var ACCOUNT_NUMBER_PROVIDER = "";
+var PROVIDER_INTERVAL = "";
+var CURRENCY_PROVIDER_ORIGIN = "";
+var DESCRIPTION_PAY = "";
+
+var PROVIDER_ORIGIN_BENEFICIARIES = new Map();
+var PROVIDER_MODIFY_BENEFICIARIES = new Map();
+var PROVIDER_ORIGIN_LOAD = false;
+
+function goBackToStepOneProvider() {
+	$("#step-1").removeClass("hidden");
+	$("#step-1 .step-1-right").height($("#step-1 .step-1-left").height());
+	$("#step-2").addClass("hidden");
+	$("#step-3").addClass("hidden");
+	$("#step-4").addClass("hidden");
+}
+
+function goBackToStepTwoProvider() {
+	PROVIDER_ORIGIN_BENEFICIARIES = new Map();
+	PROVIDER_MODIFY_BENEFICIARIES = new Map();
+	$("#step-1").addClass("hidden");
+	$("#step-2").removeClass("hidden");
+	$("#buttonSelectAccountDestiny").removeClass("hidden");
+	$("#buttonProviderLoading").addClass("hidden");
+	var height = $("#step-2 .step-2-left").height();
+	$("#step-2 .step-2-right").height(height);
+	$("#step-3").addClass("hidden");
+	$("#step-4").addClass("hidden");
+}
+
+function goBackToStepThreeProvider() {
+	$("#step-1").addClass("hidden");
+	$("#step-2").addClass("hidden");
+	$("#step-3").removeClass("hidden");
+	$("#step-4").addClass("hidden");
+}
+
+
+/*Metodos para la funcionalidad de pago de proveedores*/
+//funcion para agregar una factura
+function showMoreInvoice() {
+    /*Clonar invoice-item y agragar al contenedor*/
+	
+	
+	if($("#invoice-list").hasClass("hidden")){
+		$("#invoice-list").removeClass("hidden");
+	}else{
+		var $invoice = $(".invoice-item").first().clone(false);
+		if(!$invoice.hasClass("row"))
+			$invoice.addClass("row");
+		$("#invoice-list").append($invoice);
+		var type = $("#chooseDestiny #select-destiny").val();
+		var length =  $(".invoice-item").length;
+		var content = $(".invoice-item")[length-1];
+		var tam = content.children.length;
+		for(var i=0;i<tam-1;i++){
+			content.children[i].children[1].setAttribute("value","");
+			if(i === 2){//posicion del datepicker
+				content.children[i].children[1].setAttribute("value","");
+				content.children[i].children[1].setAttribute("id","datepicker-"+length);//debemos setear un nuevo id o no asigna la propiedad del datepicker
+				var aux = content.children[i].children[1].getAttribute("id");
+				$("#"+aux).removeClass('hasDatepicker');
+				$("#"+aux).datepicker('destroy').removeClass('hasDatepicker');
+				$("#"+aux).datepicker({
+					dateFormat: 'dd/mm/yy'
+				});
+			}
+		}
+		
+		
+		$.datepicker.setDefaults($.datepicker.regional["es"]);
+    	$(".datePickerInvoice").datepicker({
+    		dateFormat: 'dd/mm/yy'
+    	});
+		$(".invoice-item:last input").val('');
+		$(".invoice-item:last input").removeClass("div-error-background-orange");
+		$(".invoice-item:last span.color-orange-error").remove();
+	}
+	$("#totalInvoices").text($(".invoice-item").length);
+	
+		
+	
+    
+}
+//funcion que solicita al controlador borrar un proveedor con sus facturas si es que tiene
+function deleteProvider(orderPay){
+	$.ajax({
+        type: 'POST',
+        url: appname + '/payprovider/delete/provider',
+        data: {
+            orderPay: parseInt(orderPay),
+        }
+    });
+}
+//funcion para borrar una factura
+function deleteInvoice(obj) {
+    var length = $(".invoice-item").length;
+	obj.parentElement.parentElement.parentElement.remove();
+	getTotalAmountProviderInvoice();
+	$("#totalInvoices").text($(".invoice-item").length);
+	
+	
+}
+
+
+/*Debe establecer las condiciones apropiadas en el
+moda para mostrar datos de los detalles del pago seleccionado*/
+function populateProviderModal(data) {
+    /*show modal de providers*/
+
+    $("#modalAddProvider").modal("toggle");
+}
+
+//Funcion que permite mantener en un input oculto el archivo obligatorio de pago de proveedores
+function loadFilePayProvider(){
+	$(".div-content-file-pay-provider").before(
+			function() {
+				if ( ! $(this).prev().hasClass('input-ghost') ) {
+					var element = $("<input type='file' id='payProviderFile' class='input-ghost' accept='.csv, .xls, .txt' style='visibility:hidden; height:0'>");
+					element.attr("name","payProviderFile");
+					element.change(function(){
+						
+						$(".input-file-provider").val(element.val().split('\\').pop());
+					});
+					element.click();
+					return element;
+				}else{
+					$("#payProviderFile").remove();
+					var element = $("<input type='file' id='payProviderFile' class='input-ghost' accept='.csv, .xls, .txt' style='visibility:hidden; height:0'>");
+					element.attr("name","payProviderFile");
+					element.change(function(){
+						
+						$(".input-file-provider").val(element.val().split('\\').pop());
+					});
+					element.click();
+					return element;
+				}
+			}
+		);
+}
+//funcion que permite mantener en un input oculto la factura de pago de proveedores
+function loadFileInvoiceProvider(){
+	$(".div-content-file-invoice-provider").before(
+			function() {
+				if ( ! $(this).prev().hasClass('input-ghost') ) {
+					var element = $("<input type='file' id='invoiceProviderFile' class='input-ghost' accept='.csv, .xls, .txt' style='visibility:hidden; height:0'>");
+					element.attr("name","invoiceProviderFile");
+					element.change(function(){
+						
+						$(".input-file-invoice").val(element.val().split('\\').pop());
+						
+					});
+					element.click();
+					return element;
+				}else{
+					$("#invoiceProviderFile").remove();
+					var element = $("<input type='file' id='invoiceProviderFile' class='input-ghost' accept='.csv, .xls, .txt' style='visibility:hidden; height:0'>");
+					element.attr("name","invoiceProviderFile");
+					element.change(function(){
+						
+						$(".input-file-invoice").val(element.val().split('\\').pop());
+					});
+					element.click();
+					return element;
+				}
+			}
+		);
+}
+//funcion para enviar el archivo y guardarlo en la bd
+function sendFormFilesProviders(data) {
+	PROVIDER_ORIGIN_BENEFICIARIES = new Map();
+	PROVIDER_MODIFY_BENEFICIARIES = new Map();
+	PROVIDER_ORIGIN_LOAD = false;
+	$("#buttonProviderLoading").removeClass("hidden");
+	$("#buttonSelectAccountDestiny").addClass("hidden");
+	$("#buttonProviderLoading").button().button('disable');
+	var height = $("#step-2 .step-2-left").height();
+	$("#step-2 .step-2-right").height(height);
+	$(".loader").removeClass("hidden");
+	$.ajax({
+        type: 'POST',
+        enctype: 'multipart/form-data',
+        url: appname + '/payprovider/uploadfiles',
+        data: data,
+        processData: false,
+        contentType: false,
+        cache: false,
+    }).done(function(data){
+    	$(".loader").addClass("hidden");
+    	if(data === "OK"){
+			$(".loader").removeClass("hidden");
+    		setTimeout(function() {
+    			processFile();
+			}, 3000);
+    	}
+    	
+
+    }).fail(function(request, status, error){
+    	$(".loader").addClass("hidden");
+        var errorData = request.responseJSON;
+        $("#container-main").css('margin-top', '0px');
+        ajaxErrorHandler(errorData, status, error, "genericError");
+        $("#buttonProviderLoading").addClass("hidden");
+    	$("#buttonSelectAccountDestiny").removeClass("hidden");
+    	var height = $("#step-2 .step-2-left").height();
+    	$("#step-2 .step-2-right").height(height);
+        clearInterval(PROVIDER_INTERVAL);
+    })
+}
+//funcion para solicitar el procesamiento del archivo
+function processFile(){
+	$(".loader").removeClass("hidden");
+	$.ajax({
+        type: 'POST',
+		dataType: 'json',
+        url: appname + '/payprovider/process/file'   
+    }).done(function(data){
+    	$(".loader").addClass("hidden");
+    	if(data.response === "OK"){
+    		PROVIDER_INTERVAL = setInterval(function() {
+				$(".loader").removeClass("hidden");
+    			checkProcessProvider();
+			}, 3000);
+    	}
+    }).fail(function(request, status, error){
+    	$(".loader").addClass("hidden");
+        var errorData = request.responseJSON;
+        $("#container-main").css('margin-top', '0px');
+        ajaxErrorHandler(errorData, status, error, "genericError");
+        $("#buttonProviderLoading").addClass("hidden");
+    	$("#buttonSelectAccountDestiny").removeClass("hidden");
+        clearInterval(PROVIDER_INTERVAL);
+    })
+}
+
+//funcion que controla el progreso de procesamiento del archivo
+function  checkProcessProvider(){
+	$(".loader").removeClass("hidden");
+	$.ajax({
+        type: "GET",
+		dataType: 'json',
+        url: appname +"/payprovider/process/check"
+	 }).done(function (data) { 
+		 $(".loader").addClass("hidden");
+        if(data.hasError){
+            if(data.errorBody.useApiMessage)
+                showModalAdminError(data.errorBody.message);
+            else
+                showModalAdminError("Error Procesando Archivo");
+
+            redirectLoginExpired(data.errorBody.code);
+        }
+        else {
+            if (data.response.estado === 'COMPLETO') { //si ya proceso todo se llama a la funcion para obtener la lista en base al archivo
+                clearInterval(PROVIDER_INTERVAL);
+                fileToListProvider();
+			}else if (data.response.estado === 'PROCESANDO') {
+				showPartialListProviders(data.response.objetoProcesado);
+            }else if (data.response.estado === 'ERROR') { //si ya proceso todo se llama a la funcion para obtener la lista en base al archivo
+				clearInterval(PROVIDER_INTERVAL);
+				let messageError = "Error Procesando Archivo";
+				if(data.response.mensajes[0] !== null && data.response.mensajes[0] !== undefined && data.response.mensajes[0] !== "")
+					messageError = data.response.mensajes[0];
+				showModalAdminError(messageError);
+			}
+        }
+	 }).fail(function (request, status, error) {
+		 $(".loader").addClass("hidden");
+	        var errorData = request.responseJSON;
+	        ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+			clearInterval(PROVIDER_INTERVAL);
+	        $("#buttonSalaryPaymentStep-3Loading").addClass("hidden");
+	    	$("#buttonSalaryPaymentStep-3").removeClass("hidden");
+	 });
+}
+
+function showPartialListProviders(providers){
+	if(providers != null && providers !== undefined){
+		$("#salary-fileToList .edit-button").prop("disabled",true);
+		$("#salary-fileToList .delete-button").prop("disabled",true);
+		$("#buttonNextPayments").attr("disabled","disabled");
+		$("#modalProvider .modalAddProvider").modal('hide');//cuando quiere agregar o editar proveedores
+		$("#modalProvider .modalEditProvider").modal('hide');//cuando quiere agregar o editar proveedores
+		$(".loader").removeClass("hidden");
+		$.ajax({
+			type: 'POST',
+			url: appname + '/payprovider/partial-providers',
+			data : {
+				listProviders : JSON.stringify(providers)
+			}
+
+		}).done(function(data){
+			$("#step-1").addClass("hidden");
+			$("#step-2").addClass("hidden");
+			$("#step-3").removeClass("hidden");
+			$(".modal-backdrop").removeClass('in');
+			$(".fade").removeClass('modal-backdrop');
+			$("body").removeClass("modal-open");
+			$("#step-3").html(data);
+			$("#buttonNextPayments").attr("disabled","disabled");
+			$("#totalDestiny").text($("#provider-table tbody tr").length);
+			var totalAmount = 0;
+			var length = $("#provider-table tbody tr").length;
+			for(var i=0;i<length;i++){
+				totalAmount += parseFloat($("#provider-table tbody tr:eq("+i+") td:eq(6)").text().replace(/\./g, '').replace(/,/g, '.').trim());
+			}
+			var result = "";
+			var currency = "";
+			if(CURRENCY_PROVIDER_ORIGIN === "GS"){
+				result = formatStringAmount(totalAmount,'false');
+				currency = "Gs. ";
+			}else{
+				result = formatStringAmount(totalAmount.toString().replace(".",","),'true');
+				currency = "USD. ";
+			}
+			result = currency + result;
+			$("#totalTransfer").text(result);
+
+			$("#accountNumberDescriptionStep3").text(ACCOUNT_PROVIDER_DESCRIPTION);
+
+			$("#step-3 .step-1-right").height($("#step-3 .step-1-left").height());
+			var height1 = $(".step3-2-left").height()+20;
+			$(".step3-2-right").height(height1);
+			$(".step3-2-left").height(height1);
+			var height2 = $(".step-3-left").height();
+			$(".step-3-right").height(height2);
+			$("#buttonReadyAddPayment span").text("Listo");
+			$("#buttonReadyEditPayment span").text("Listo");
+			$("#salary-fileToList .edit-button").prop("disabled",true);
+			$("#salary-fileToList .delete-button").prop("disabled",true);
+
+		}).fail(function(request, status, error){
+			$(".loader").addClass("hidden");
+			var errorData = request.responseJSON;
+			$("#container-main").css('margin-top', '0px');
+			ajaxErrorHandler(errorData, status, error, "genericError");
+			$("#buttonProviderLoading").addClass("hidden");
+			$("#buttonSelectAccountDestiny").removeClass("hidden");
+		})
+	}else{
+		$(".loader").addClass("hidden");
+		clearInterval(PROVIDER_INTERVAL);
+		showModalAdminError("Error Procesando Archivo");
+	}
+
+
+
+}
+
+//funcion para calcular el total de proveedores y el total a pagar
+function getTotalAmountProviderInvoice(){
+	var length = $(".invoice-ammount input").length;
+	var totalAmount = 0;
+	for(var i=0;i<length;i++){
+		var ubi = $(".invoice-ammount input")[i].value;
+		ubi = ubi.replace(/\./g, '').replace(/,/g, '.');
+		if(isNaN(parseInt(ubi)) === false){ // va a dar true si es vacio el input
+			totalAmount = totalAmount + parseFloat(ubi);
+		}
+	}
+	
+	var result = "";
+    var currency = "";
+    if(CURRENCY_PROVIDER_ORIGIN === "GS"){
+    	result = formatStringAmount(totalAmount,'false');
+    	currency = "Gs. ";
+    }else{
+    	result = formatStringAmount(totalAmount.toString().replace(".",","),'true');
+    	currency = "USD. ";
+    }
+    result = currency + result;
+    $("#totalInvoicesAmmount").text(result);
+}
+
+//se muestra la lista procesada en base al archivo
+function fileToListProvider(){
+	$("#modalProvider .modalAddProvider").modal('hide');//cuando quiere agregar o editar proveedores
+    $("#modalProvider .modalEditProvider").modal('hide');//cuando quiere agregar o editar proveedores
+	$("#salary-fileToList .edit-button").prop("disabled",false);
+	$("#salary-fileToList .delete-button").prop("disabled",false);
+	$(".loader").removeClass("hidden");
+	$.ajax({
+	        type: 'POST',
+	        url: appname + '/payprovider/file/list',
+	        
+	    }).done(function(data){
+	    	$(".loader").addClass("hidden");
+	    	$("#step-1").addClass("hidden");
+	        $("#step-2").addClass("hidden");
+	        $("#step-3").removeClass("hidden");
+	        $(".modal-backdrop").removeClass('in');
+	    	$(".fade").removeClass('modal-backdrop');
+	    	$("body").removeClass("modal-open");
+	        $("#step-3").html(data);
+			originBeneficiaryProviderData();
+	        $("#totalDestiny").text($("#provider-table tbody tr").length);
+	        var totalAmount = 0;
+	        var length = $("#provider-table tbody tr").length;
+	        for(var i=0;i<length;i++){
+	        	totalAmount += parseFloat($("#provider-table tbody tr:eq("+i+") td:eq(6)").text().replace(/\./g, '').replace(/,/g, '.').trim());
+	        }
+	        var result = "";
+	        var currency = "";
+	        if(CURRENCY_PROVIDER_ORIGIN === "GS"){
+	        	result = formatStringAmount(totalAmount,'false');
+	        	currency = "Gs. ";
+	        }else{
+	        	result = formatStringAmount(totalAmount.toString().replace(".",","),'true');
+	        	currency = "USD. ";
+	        }
+	        result = currency + result;
+	        $("#totalTransfer").text(result);
+	        
+	        $("#accountNumberDescriptionStep3").text(ACCOUNT_PROVIDER_DESCRIPTION);
+	        
+	        $("#step-3 .step-1-right").height($("#step-3 .step-1-left").height());
+	        var height1 = $(".step3-2-left").height()+20;
+	        $(".step3-2-right").height(height1);
+	        $(".step3-2-left").height(height1);
+	        var height2 = $(".step-3-left").height();
+	        $(".step-3-right").height(height2);
+	        
+	        $("#buttonReadyAddPayment")
+	        $("#buttonReadyAddPayment span").text("Listo");
+	        $("#buttonReadyEditPayment span").text("Listo");
+	        
+	    }).fail(function(request, status, error){
+	    	$(".loader").addClass("hidden");
+	        var errorData = request.responseJSON;
+	        $("#container-main").css('margin-top', '0px');
+	        ajaxErrorHandler(errorData, status, error, "genericError");
+	        $("#buttonProviderLoading").addClass("hidden");
+	    	$("#buttonSelectAccountDestiny").removeClass("hidden");     
+	    })
+}
+
+function loadPayment(payment) {
+	$(".loader").removeClass("hidden");
+    $.ajax({
+        type: "POST",
+        url: appname + "/payprovider/paydetail",
+        data: {
+            numberPayment: payment,
+        }
+    }).done(function (data) {
+    	$(".loader").addClass("hidden");
+    	$("#modalProvider").removeClass("hidden");
+    	$("#modalProvider").html(data);
+    	$("#modalProvider #modalAddProvider").modal('toggle');
+          
+	}).fail(function (errorData,status,error) {
+		$(".loader").addClass("hidden");
+        ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+    });
+}
+
+//funcion para editar datos del proveedor con sus facturas
+function editDataProvider(){
+
+	var orderPayValue = $("#orderPayValue").val();
+	var movementType = $(".modalEditProvider #chooseDestiny #select-destiny").val();
+	var account = $(".modalEditProvider #inputDestiny input").val();
+	var documentNumber = $(".modalEditProvider #transferDocument input").val();
+	var direction = $(".modalEditProvider #directionProvider input").val();
+	var amount = $(".modalEditProvider #transferAmmount input").val().replace(/\./g, '').replace(/,/g, '.');
+	var cellphone = $(".modalEditProvider #cellphoneNumber").val();
+	var emailDirection = $(".modalEditProvider #emailDirection").val();
+	var emailDirection2 = $(".modalEditProvider #emailDirection2").val();
+	var emailDirection3 = $(".modalEditProvider #emailDirection3").val();
+	var typeSipap = "";
+	var codBank = "";
+	var denomination = $(".modalEditProvider #nameLastname input").val();
+	var codTypeDocument = "";
+	var payDay = "";
+	var cantInvoices = "";
+	var idMap = "";
+	var pos = "";
+	var classLength = $("tr[orderpay='"+orderPayValue+"']")[0].classList.length;
+	if(classLength == 1){
+		pos = $("tr[orderpay='"+orderPayValue+"']").attr("class").trim().split("-")[3];
+		idMap = $("tr[orderpay='"+orderPayValue+"']").attr("class").trim();
+	}else{
+		pos = $("tr[orderpay='"+orderPayValue+"']")[0].classList[1].split("-")[3];
+		idMap = $("tr[orderpay='"+orderPayValue+"']")[0].classList[1].trim();
+	}
+	modifiedProviderBeneficiary(pos,account,amount,documentNumber,orderPayValue,denomination);
+	if(movementType === "I"){//tipo SIPAP
+		typeSipap = "LBTR";
+		codBank = $(".modalEditProvider #transferEntity #banksProvider").val();
+		codTypeDocument = $(".modalEditProvider #typeDocument #typeDocumentProvider").val();
+		payDay = $(".modalEditProvider #transferDates input").val();
+	}else{
+		payDay = $(".modalEditProvider #transferDates input").val() != undefined ? $(".modalEditProvider #transferDates input").val() : "";
+	}
+	var length = 0;
+	var listInvoices = [];
+	if(!$("#invoice-list").hasClass("hidden")){
+		length = $("#invoice-list .invoice-item").length;
+		for(var i=0;i<length;i++){
+			var invoiceCodEnte = $("#invoice-list .invoice-item:eq("+i+")").attr("invoiceCodEnte");
+			var invoiceNumber = $("#invoice-list .invoice-item:eq("+i+") input")[0].value;
+			var stamped = $("#invoice-list .invoice-item:eq("+i+") input")[1].value;
+			var datePay = $("#invoice-list .invoice-item:eq("+i+") input")[2].value;
+			var concept = $("#invoice-list .invoice-item:eq("+i+") input")[3].value;
+			var amountInvoice = $("#invoice-list .invoice-item:eq("+i+") input")[4].value.replace(/\./g, '').replace(/,/g, '.');
+			var invoice = new constructorInvoices("",invoiceNumber,stamped,datePay,concept,amountInvoice,invoiceCodEnte);
+			listInvoices.push(invoice);
+		}
+	}
+	cantInvoices = length;
+	let beneficiaryModified = null;
+	if(PROVIDER_ORIGIN_BENEFICIARIES.get(orderPayValue) !== undefined && PROVIDER_MODIFY_BENEFICIARIES.get(orderPayValue) !== undefined){
+		beneficiaryModified = PROVIDER_ORIGIN_BENEFICIARIES.get(orderPayValue);
+
+	}
+	var providerJson = new  constructorProvider("",movementType,account,documentNumber,
+							amount,typeSipap,codBank,denomination,codTypeDocument,
+							payDay,cantInvoices,direction, cellphone, emailDirection,beneficiaryModified, emailDirection2, emailDirection3);
+	
+	$("#buttonReadyEditPayment span").text("Procesando...");
+	$("#buttonReadyEditPayment").button().button('disable');
+	$(".loader").removeClass("hidden");
+	$.ajax({
+		type : "POST",
+		url : appname + "/payprovider/edit",
+		data : {
+			 orderPay: orderPayValue,
+			 provider: JSON.stringify(providerJson),
+			 listInvoices : JSON.stringify(listInvoices)
+		}
+	}).done(function(data) {
+		$(".loader").addClass("hidden");
+		if(data === "OK"){
+    		PROVIDER_INTERVAL = setInterval(function() {
+    			checkProcessProvider();
+			}, 7000);
+    	}
+       
+	}).fail(function(errorData, status, error) {
+		$(".loader").addClass("hidden");
+		clearInterval(PROVIDER_INTERVAL);
+		ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+	});
+}
+
+
+//constructor de una factura
+function constructorInvoices(orderPay,invoiceNumber,stamped,datePay,concept,amount,codEnte){
+	this.orderPay = orderPay;
+	this.invoiceNumber = invoiceNumber;
+	this.stamped = stamped;
+	this.datePay = datePay;
+	this.concept = concept;
+	this.amount = amount;
+	this.codEnte = codEnte;
+	
+}
+
+//constructor de un proveedor
+function constructorProvider(orderPay,movementType,account,documentNumber,amount,typeSipap,codBank,denomination,codTypeDocument,
+		payDay,cantInvoices,direction, cellphone, emailDirection,additionalInfo, emailDirection2, emailDirection3){
+	this.orderPay = orderPay;
+	this.movementType = movementType;
+	this.account = account;
+	this.documentNumber = documentNumber;
+	this.amount = amount;
+	this.typeSipap = typeSipap;
+	this.codBank = codBank;
+	this.denomination = denomination;
+	this.codTypeDocument = codTypeDocument;
+	this.payDay = payDay;
+	this.cantInvoices = cantInvoices;
+	this.direction = direction;
+	this.cellphone = cellphone;
+	this.emailDirection = emailDirection;
+	this.additionalInfo = additionalInfo;
+	this.emailDirection2 = emailDirection2;
+	this.emailDirection3 = emailDirection3
+}
+
+//funcion para agregar un nuevo proveedor
+function addNewProvider(){
+	var orderPayValue = 0;
+	var movementType = $(".modalAddProvider #chooseDestiny #select-destiny").val();
+	var account = $(".modalAddProvider #inputDestiny input").val();
+	var documentNumber = $(".modalAddProvider #transferDocument input").val();
+	var direction = $(".modalAddProvider #directionProvider input").val();
+	var amount = $(".modalAddProvider #transferAmmount input").val().replace(/\./g, '').replace(/,/g, '.');
+	var cellphone = $(".modalAddProvider #cellphoneNumber").val();
+	var emailDirection = $(".modalAddProvider #emailDirection").val();
+	var emailDirection2 = $(".modalAddProvider #emailDirection2").val();
+	var emailDirection3 = $(".modalAddProvider #emailDirection3").val();
+	var typeSipap = "";
+	var codBank = "";
+	var denomination = $(".modalAddProvider #nameLastname input").val();
+	var codTypeDocument = "";
+	var payDay = "";
+	var cantInvoices = "";
+	if(movementType === "I"){
+		typeSipap = "LBTR";
+		codBank = $(".modalAddProvider #transferEntity #banksProvider").val();
+		codTypeDocument = $(".modalAddProvider #typeDocument #typeDocumentProvider").val();
+		payDay = $(".modalAddProvider #transferDates input").val();
+	}
+	var length = 0;
+	var listInvoices = [];
+	if(!$("#invoice-list").hasClass("hidden")){
+		length = $("#invoice-list .invoice-item").length;
+		for(var i=0;i<length;i++){
+			var invoiceCodEnte = $("#invoice-list .invoice-item:eq("+i+")").attr("invoiceCodEnte");
+			var invoiceNumber = $("#invoice-list .invoice-item:eq("+i+") input")[0].value;
+			var stamped = $("#invoice-list .invoice-item:eq("+i+") input")[1].value;
+			var datePay = $("#invoice-list .invoice-item:eq("+i+") input")[2].value;
+			var concept = $("#invoice-list .invoice-item:eq("+i+") input")[3].value;
+			var amount = $("#invoice-list .invoice-item:eq("+i+") input")[4].value.replace(/\./g, '').replace(/,/g, '.');
+			var invoice = new constructorInvoices("",invoiceNumber,stamped,datePay,concept,amount,invoiceCodEnte);//constructor para una factura
+			listInvoices.push(invoice);//se carga la lista de facturas
+		}
+	}
+	cantInvoices = length;
+	
+	var providerJson = new  constructorProvider("",movementType,account,documentNumber,
+							amount,typeSipap,codBank,denomination,codTypeDocument,
+							payDay,cantInvoices,direction, cellphone, emailDirection,null, emailDirection2, emailDirection3); //constructor para un proveedor
+	$("#buttonReadyAddPayment").button().button('disable');
+	$("#buttonReadyAddPayment span").text("Procesando...");
+	$.ajax({
+		type : "POST",
+		url : appname + "/payprovider/edit",
+		data : {
+			 orderPay: orderPayValue,
+			 provider: JSON.stringify(providerJson),
+			 listInvoices : JSON.stringify(listInvoices)
+		}
+	}).done(function(data) {
+		if(data === "OK"){
+    		PROVIDER_INTERVAL = setInterval(function() {
+    			checkProcessProvider();
+			}, 7000);
+    	}
+       
+	}).fail(function(errorData, status, error) {
+		clearInterval(PROVIDER_INTERVAL);
+		ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+	});
+}
+
+//funcion utilizada para registrar un pago de proveedores
+function registerPaymentProviders(){
+	   DESCRIPTION_FILE = $("#descriptionFile").text();	
+	   var errorLength = $("#salary-fileToList .div-error-background-orange").length;
+	   //si existe un registro con error se muestra mensaje
+	   if (errorLength > 0) {
+			var msg = "";
+			if (errorLength === 1) {
+				msg = "Favor verificar su grupo de proveedores a enviar. Encontramos "
+						+ errorLength + " proveedor con error";
+			} else {
+				msg = "Favor verificar su grupo de proveedores a enviar. Encontramos "
+						+ errorLength + " proveedores con error";
+			}
+			showModalGenericError(msg);
+	   }else{
+		   $(".loader").removeClass("hidden");
+		   let mapFilter = new Map();
+		   if(PROVIDER_MODIFY_BENEFICIARIES.size > 0){
+		   		const iterator = PROVIDER_MODIFY_BENEFICIARIES.keys();
+		   		for(let i=0; i<PROVIDER_MODIFY_BENEFICIARIES.size;i++){
+		   			let keyMap = iterator.next().value;
+					let beneficiaryOrigin =PROVIDER_ORIGIN_BENEFICIARIES.get(keyMap);
+                    let beneficiaryModified =beneficiaryOrigin ;
+                        /*let beneficiaryModified =  PROVIDER_MODIFY_BENEFICIARIES.get(keyMap);
+                        if(beneficiaryModified.nroCuenta !== "")
+                            beneficiaryModified.nroCuenta = beneficiaryOrigin.nroCuenta;
+                        if(beneficiaryModified.monto !== "")
+                            beneficiaryModified.monto = beneficiaryOrigin.monto;
+                        if(beneficiaryModified.nroDocumento !== "")
+                            beneficiaryModified.nroDocumento = beneficiaryOrigin.nroDocumento;
+                        if(beneficiaryModified.beneficiario !== "")
+                            beneficiaryModified.beneficiario = beneficiaryOrigin.beneficiario;*/
+					mapFilter.set(keyMap,beneficiaryModified);
+				}
+		   }
+		   $("#buttonNextPayments").attr("disabled","disabled");
+		   $.ajax({
+		        type: "POST",
+			   dataType: 'json',
+		        url: appname + "/payprovider/registerpay",
+			   data:{
+				   providerModified:JSON.stringify(Object.fromEntries(mapFilter))
+			   }
+		        
+		    }).done(function (data) {
+			   $(".loader").removeClass("hidden");
+               if(data.hasError){
+				   data.errorBody = JSON.parse(data.errorBody);
+                   if(data.errorBody.useApiMessage)
+                       showModalAdminError(data.errorBody.message);
+                   else
+                       showModalAdminError("Error registrando la operación.");
+
+                   redirectLoginExpired(data.errorBody.code);
+               }
+               else {
+               		/*hacer llamada para chequear el estado*/
+                   PROVIDER_INTERVAL = setInterval(function() {
+                       checkProcessRegisterProvider();
+                   }, 3000);
+               	}
+		        
+		    }).fail(function (errorData,status,error) {
+		    	$(".loader").addClass("hidden");
+			   	$("#buttonNextPayments").removeAttr("disabled");
+		        ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+		    });  
+	   }
+}
+
+//funcion que controla el progreso del registro de la transaccion
+function  checkProcessRegisterProvider(){
+    $(".loader").removeClass("hidden");
+    $.ajax({
+        type: "GET",
+		dataType: 'json',
+        url: appname + "/payprovider/register/check"
+
+    }).done(function (data) {
+		$(".loader").addClass("hidden");
+        if(data.hasError){
+            if(data.errorBody.useApiMessage)
+                showModalAdminError(data.errorBody.message);
+            else
+                showModalAdminError("Error en el proceso de pago.");
+
+            redirectLoginExpired(data.errorBody.code);
+            $(".loader").addClass("hidden");
+			clearInterval(PROVIDER_INTERVAL);
+        }
+        else {
+			$(".loader").addClass("hidden");
+			clearInterval(PROVIDER_INTERVAL);
+			if (data.response.estado == 'COMPLETO'){//si ya proceso se obtiene la transaccion y se muestra la pantalla de confirmacion
+				getConfirmationView();
+			}else if(data.response.estado == 'ERROR'){
+				let messageError = "Error Procesando el Pago";
+				if(data.response.mensajes[0] !== null && data.response.mensajes[0] !== undefined && data.response.mensajes[0] !== "")
+					messageError = data.response.mensajes[0];
+				showModalAdminError(messageError);
+			}else if(data.response.estado == 'PROCESANDO' || data.response.estado == 'GUARDADO'){
+				checkProcessRegisterProvider();
+			}
+        }
+
+    }).fail(function (request, status, error) {
+        $(".loader").addClass("hidden");
+        var errorData = request.responseJSON;
+        ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+        clearInterval(PROVIDER_INTERVAL);
+        $("#buttonSalaryPaymentStep-3Loading").addClass("hidden");
+        $("#buttonSalaryPaymentStep-3").removeClass("hidden");
+    });
+}
+
+
+function getConfirmationView() {
+    $(".loader").removeClass("hidden");
+    $.ajax({
+        type: "POST",
+        url: appname + "/payprovider/confirmation",
+
+    }).done(function (data) {
+        $(".loader").addClass("hidden");
+        if(data.hasError){
+            if(data.errorBody.useApiMessage)
+                showModalAdminError(data.errorBody.message);
+            else
+                showModalAdminError("Error registrando la operación.");
+
+            redirectLoginExpired(data.errorBody.code);
+        }
+        else {
+
+			  $("#step-1").addClass("hidden");
+			  $("#step-2").addClass("hidden");
+			  $("#step-3").addClass("hidden");
+			  $("#step-4").html(data);
+			  $("#step-4").removeClass("hidden");
+			  $("#accountNumberDescriptionStep4").text(ACCOUNT_PROVIDER_DESCRIPTION);
+			  $("#descriptionFileStep4").text(DESCRIPTION_FILE);
+			  $("#step-4 .step-1-right").height($("#step-4 .step-21-left").height())
+			  var height1 = $(".step-4-2-left").height()+20;
+			  $(".step-4-2-left").height(height1);
+			  $(".step-4-2-right").height(height1);
+			  var height2 = $(".step-4-3-left").height();
+			  $(".step-4-3-right").height(height2);
+			  var height3 = $(".step-4-left").height();
+			  $(".step-4-3-right i").css("height","100%");
+			  $(".step-4-right").height(height3);
+        }
+
+
+
+    }).fail(function (errorData,status,error) {
+        $(".loader").addClass("hidden");
+		var dataError = errorData.responseJSON;
+		ajaxErrorHandler(dataError, status, error, ID_GENERIC_ERROR);
+    });
+}
+
+function confirmPaymentProviders(dinamicKey, token, aproval) {
+	var txToken = $("#tokenTransactionAprobation").val();    
+	DESCRIPTION_PAY = $("#payProviderDescription").text();
+	$(".loader").removeClass("hidden");
+	var data = {
+        dinamicKey : dinamicKey,
+        tokenTransactionAprobation : txToken
+	};
+	console.log(data);
+	$.ajax({
+		type : "POST",
+		url : appname + "/payprovider/confirmpay",
+		data : data
+	}).done(function(data) {
+		$(".loader").addClass("hidden");
+		$("#step-1").addClass("hidden");
+		$("#step-2").addClass("hidden");
+		$("#step-3").addClass("hidden");
+		$("#step-4").html(data);
+		$("#step-4").removeClass("hidden");
+		$("#providerPayStep-5").text(DESCRIPTION_PAY);
+		$("#accountNumberDescriptionStep4").text(ACCOUNT_PROVIDER_DESCRIPTION);
+		$("#descriptionFileStep4").text(DESCRIPTION_FILE);
+		var height1 = $(".step-4-2-left").height() + 20;
+		$(".step-4-2-left").height(height1);
+		$(".step-4-2-right").height(height1);
+		$(".modal-backdrop").remove();
+
+	}).fail(function(request, status, error) {
+		$(".loader").addClass("hidden");
+        $(".modal-backdrop").remove();
+		var errorData = request.responseJSON;
+		$("#container-main").css('margin-top', '0px');
+		ajaxErrorHandler(errorData, status, error, "genericError");
+	})
+}
+
+//funcion que envia notificacion por email
+function providerSendEmail(email, subject, message, numberOperation) {
+    $.ajax({
+        type: "POST",
+        url: appname + "/payprovider/notifyemail",
+        data: {
+            email: email,
+            subject: subject,
+            message: message,
+            numberOperation: numberOperation,
+        }
+    }).done(function (data) {
+        $("#emailDiv").addClass("hidden");
+    }).fail(function (request, status, error) {
+        var errorData = request.responseJSON;
+        ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+    })
+}
+//funcion que envia notificacion por sms
+function providerSendSms(number, numberOperation) {
+
+    $.ajax({
+        type: "POST",
+        url: appname + "/payprovider/notifysms",
+        data: {
+            numberPhone: number,
+            numberOperation: numberOperation,
+        }
+    }).done(function (data) {
+        $("#smsDiv").addClass("hidden");
+    }).fail(function (request, status, error) {
+        var errorData = request.responseJSON;
+        ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+    })
+
+}
+//funcion que permite descargar el reporte de pago de salarios en formato pdf
+function downloadProviderPdf(numberOperation){
+	var params = 'numberOperation=' + numberOperation;
+    var req = new XMLHttpRequest();
+    req.open("POST", appname + "/payprovider/pdfprovider", true);
+    req.responseType = "blob";
+    req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    req.onload = function () {
+    	if(req.status === 200){
+    		var blob = req.response;
+            var fileName = 'pago-proveedor' + '-' + numberOperation + '.pdf';
+            downloadAllReport(blob, fileName);
+    	}else{
+    		showModalGenericError("Error al generar el Comprobante");
+    	}
+    };
+    req.send(params);
+}
+
+function downloadBeneficiariesZIP(externalID){
+	externalID = parseInt(externalID);
+	$(".loader").removeClass("hidden");
+	var params = 'externalID=' + externalID;
+	var req = new XMLHttpRequest();
+	req.open("POST", appname + "/payprovider/beneficiaries/zip", true);
+	req.responseType = "blob";
+	req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	req.onload = function () {
+		if(req.status === 200){
+			var blob = req.response;
+			var fileName = 'beneficiario-proveedores' + '-' + externalID + '.zip';
+			downloadAllReport(blob, fileName);
+		}else{
+			showModalGenericError("Error al generar el ZIP");
+		}
+		$("#modalPayProviderDetails").modal('hide');
+		$(".loader").addClass("hidden");
+	};
+	req.send(params);
+}
+
+function showProviderBeneficiariesError(obj){
+
+	if(obj.hasClass("btn-danger")){
+		$('#salary-fileToList tr').each(function(){$(this).addClass("hidden")});
+		$("#listFile table tbody").find(".div-error-background-orange").each(function(){
+			$(this).removeClass("hidden");
+		});
+		obj.removeClass("btn-danger").addClass("btn-primary");
+		obj.text("Mostrar Todo");
+		$("#btn-hasErrorsFile").removeClass("hidden");
+	}else{
+		$('#salary-fileToList tr').each(function(){$(this).removeClass("hidden")});
+		obj.addClass("btn-danger").removeClass("btn-primary");
+		obj.text("Mostrar solo Errores");
+        $("#btn-hasErrorsFile").addClass("hidden");
+	}
+
+	$("#step-3 .step-1-right").height($("#step-3 .step-1-left").height());
+	var height2 = $(".step-3-left").height();
+	$(".step-3-right").height(height2);
+
+}
+
+function originBeneficiaryProviderData(){
+	if (!PROVIDER_ORIGIN_LOAD) {
+		PROVIDER_ORIGIN_BENEFICIARIES = new Map();
+		PROVIDER_MODIFY_BENEFICIARIES = new Map();
+		var length = $("#salary-fileToList tr").length - 1;
+		for (i = 0; i <= length; i++) {
+			var tdNumberAccount = $("#salary-fileToList tr:eq(" + i + ") td:eq(3)");
+			var beneficiaryText = $("#salary-fileToList tr:eq(" + i + ") td:eq(1)").text();
+			var tdAmount = $("#salary-fileToList tr:eq(" + i + ") td:eq(6)");
+			var documentNumber = tdNumberAccount.attr("documentNumber");
+			var accountNumberBeneficiary = "";
+			var orderPay = $("#salary-fileToList tr:eq(" + i + ")").attr("orderpay");
+			var mountBeneficiary = tdAmount.text().replace(/\./g, '').replace(/,/g, '.');
+			if (tdNumberAccount.find("input").val() === undefined) {
+				accountNumberBeneficiary = tdNumberAccount.text().trim();
+			} else {
+				accountNumberBeneficiary = tdNumberAccount.find("input").val();
+			}
+
+			var beneficiaryOrigin = new BeneficiaryProviderModified(beneficiaryText,accountNumberBeneficiary, mountBeneficiary,documentNumber,orderPay);
+			let idMap = "tr-file-pos-" + i;
+			PROVIDER_ORIGIN_BENEFICIARIES.set(orderPay, beneficiaryOrigin);
+			PROVIDER_ORIGIN_LOAD = true;
+
+
+		}
+	}
+
+}
+
+function BeneficiaryProviderModified(beneficiario,nroCuenta,monto,nroDocumento,ordenPago){
+	this.beneficiario = beneficiario;
+	this.nroCuenta = nroCuenta;
+	this.monto = monto;
+	this.nroDocumento = nroDocumento;
+	this.ordenPago = ordenPago;
+}
+
+function modifiedProviderBeneficiary(pos,account,amount,documentNumber,orderPayValue,denomination){
+	let idMap = orderPayValue;
+	let beneficiaryOrigin = "";
+	account = escapeXml(account);
+	documentNumber = escapeXml(documentNumber);
+	denomination = escapeXml(denomination);
+	if(PROVIDER_MODIFY_BENEFICIARIES.get(idMap) === undefined){
+		beneficiaryOrigin = PROVIDER_ORIGIN_BENEFICIARIES.get(idMap);
+		if(beneficiaryOrigin.nroCuenta === account)
+			account = "";
+		if(beneficiaryOrigin.monto === amount)
+			amount = "";
+		if(beneficiaryOrigin.nroDocumento === documentNumber)
+			documentNumber = "";
+		if(beneficiaryOrigin.beneficiario === denomination)
+			denomination = "";
+	}else{
+		let beneficiaryModified = PROVIDER_MODIFY_BENEFICIARIES.get(idMap);
+		if(beneficiaryModified.nroCuenta === account || beneficiaryModified.nroCuenta === "")
+			account = beneficiaryModified.nroCuenta;
+		if(beneficiaryModified.monto === amount || beneficiaryModified.monto === "")
+			amount = beneficiaryModified.monto;
+		if(beneficiaryModified.nroDocumento === documentNumber || beneficiaryModified.nroDocumento === "")
+			documentNumber = beneficiaryModified.nroDocumento;
+		if(beneficiaryModified.beneficiario === denomination || beneficiaryModified.beneficiario === "")
+			denomination = beneficiaryModified.beneficiario;
+	}
+	if(account !== "" || amount !== "" || documentNumber !== "" || denomination !== ""){
+		beneficiaryOrigin = new BeneficiaryProviderModified(denomination,account, amount,documentNumber,orderPayValue);
+		PROVIDER_MODIFY_BENEFICIARIES.set(idMap,beneficiaryOrigin);
+	}
+
+}
+
+function downloadFileProviderError(){
+	var req = new XMLHttpRequest();
+	var params = "";
+	req.open("POST", appname + "/payprovider/beneficiaries/error", true);
+	req.responseType = "blob";
+	req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	req.onload = function () {
+		if(req.status === 200){
+			var blob = req.response;
+			var fileName = 'proveedores-beneficiarios-errores.pdf';
+			downloadAllReport(blob, fileName);
+		}else{
+			showModalGenericError("Error al generar el Comprobante");
+		}
+
+	};
+	req.send(params);
+
+}
+
+function showButtonsBeneficiariesProviderError(){
+	let lengthError = $("#listFile table tbody .div-error-background-orange").length;
+	if(lengthError == 0){
+		$("#btn-hasErrors").addClass("hidden");
+		$("#btn-hasErrorsFile").addClass("hidden");
+		$('#salary-fileToList tr').each(function(){$(this).removeClass("hidden")});
+	}else{
+		$("#btn-hasErrors").removeClass("hidden");
+	}
+}
+
+function verifyTransactionProvider(){
+	let totalAmount = $("#totalTransfer").text().split(" ")[1];
+	totalAmount = totalAmount.trim().replace(/\./g, '').replace(/,/g, '.');
+	$(".loader").removeClass("hidden");
+	$.ajax({
+		type: "POST",
+		dataType: 'json',
+		url: appname + "/payprovider/validate-transaction",
+		data:{
+			totalPay:totalAmount
+		}
+
+	}).done(function (data) {
+		$(".loader").addClass("hidden");
+		if(data.hasError){
+			if(data.errorBody.useApiMessage)
+				showModalAdminError(data.errorBody.message);
+			else
+				showModalAdminError("Error en la verificacion.");
+
+			redirectLoginExpired(data.errorBody.code);
+		}
+		else {
+			$('#dgcAceptar').off("click");
+			$('#dgcRechazar').off("click");
+			if(data.response.estado === "ERROR"){
+				$(".loader").addClass("hidden");
+				$('.message').html(data.response.mensaje);
+				var dgcTiempo = 0;
+				var alVentana=$('.dgcVentana').height();
+				var alNav=$(window).height();
+				var supNav=$(window).scrollTop();
+				$('.dgcAlert').css('height',$(document).height());
+				$('.dgcVentana').css('top',((alNav-alVentana)/2+supNav-100)+'px');
+				$('.dgcAlert').css('display','block');
+				$('.dgcAlert').animate({opacity:1},dgcTiempo);
+				$('.dgcMensaje .title-alert').text("Aviso");
+				$('#dgcAceptar').text("Continuar el proceso");
+				$('#dgcRechazar').text("Finalizar el proceso");
+				$('#dgcRechazar').removeClass("hidden");
+				$('#dgcAceptar').click(function(e) {
+					$('.dgcAlert').animate({opacity:0},dgcTiempo);
+					$('.dgcAlert').css('display','none');
+					registerPaymentProviders();
+				});
+				$('.dgcCerrar').click(function(e) {
+					$('.dgcAlert').animate({opacity:0},dgcTiempo);
+					$('.dgcAlert').css('display','none');
+					$('.dgcMensaje .title-alert').text("Importante");
+					$('#dgcAceptar').text("Aceptar");
+					$('#dgcRechazar').addClass("hidden");
+					$('#dgcRechazar').text("Rechazar");
+				});
+				$('#dgcRechazar').click(function(e) {
+					$('.dgcCerrar').click();
+				});
+			}else{
+				registerPaymentProviders();
+			}
+
+		}
+	}).fail(function (errorData,status,error) {
+		$(".loader").addClass("hidden");
+		var dataError = errorData.responseJSON;
+		$("#container-main").css('margin-top', '0px');
+		ajaxErrorHandler(dataError, status, error, "genericError");
+	});
+}
+
+

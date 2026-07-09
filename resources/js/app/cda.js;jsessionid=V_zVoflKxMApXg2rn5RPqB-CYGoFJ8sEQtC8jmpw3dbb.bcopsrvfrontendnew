@@ -1,0 +1,20 @@
+//función para obtener movimientos y todos los datos de un CDA
+function getCDA(idProducto)
+{
+	var fields = {
+            numberProduct: idProducto,            
+    }
+    var $form = $('<form>', {
+        action: appname+'/cda',
+        method: 'post'
+    }).append(
+            $.map(fields, function (val, key) {
+                return $('<input>').attr({
+                    type: "hidden",
+                    name: key,
+                    value: val
+                })
+            })
+    )
+    $form.appendTo('body').submit();
+}

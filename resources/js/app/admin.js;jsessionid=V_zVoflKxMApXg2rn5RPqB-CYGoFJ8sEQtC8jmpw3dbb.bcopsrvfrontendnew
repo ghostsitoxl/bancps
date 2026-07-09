@@ -1,0 +1,288 @@
+var LIST_PRODUCTOS = new Array();
+
+function showRolesList() {
+
+    $(".loader").removeClass("hidden");
+    $("#arrow-create").addClass("hidden");
+    $("#arrow-edit").removeClass("hidden");
+    $("#arrow-users").addClass("hidden");
+
+    $.ajax({
+        type: "GET",
+        url: appname + "/admin/lista-roles",
+        data: {}
+    }).done(function (data) {
+        $(".loader").addClass("hidden");
+        $("#users").addClass("hidden");
+        $("#assign").addClass("hidden");
+        $("#edit").removeClass("hidden");
+        $("#edit").html(data);
+
+    }).fail(function (request, status, error) {
+        $(".loader").addClass("hidden");
+        var errorData = request.responseJSON;
+        $("#responseCheck").html(errorData);
+        showModalAdminError(errorData.message);
+    })
+
+}
+
+
+function getCreateRoles(){
+    $(".loader").removeClass("hidden");
+    $("#arrow-create").removeClass("hidden");
+    $("#arrow-edit").addClass("hidden");
+    $("#arrow-users").addClass("hidden");
+
+    $.ajax({
+        type: "GET",
+        url: appname + "/admin/crear-rol",
+        data: {}
+    }).done(function (data) {
+        $(".loader").addClass("hidden");
+        $("#users").addClass("hidden");
+        $("#assign").removeClass("hidden");
+        $("#edit").addClass("hidden");
+        $("#assign").html(data);
+
+    }).fail(function (request, status, error) {
+        $(".loader").addClass("hidden");
+        var errorData = request.responseJSON;
+        $("#responseCheck").html(errorData);
+        showModalAdminError(errorData.message);
+    })
+
+}
+
+
+function getListUsers(){
+	$(".loader").removeClass("hidden");
+    $.ajax({
+        type: "GET",
+        url: appname + "/admin/list-users",
+        data: {}
+    }).done(function (data) {
+    	$(".loader").addClass("hidden");
+        $("#users").removeClass("hidden");
+        $("#assign").addClass("hidden");
+        $("#edit").addClass("hidden");
+        $("#users").html(data);
+
+    }).fail(function (request, status, error) {
+    	$(".loader").addClass("hidden");
+        var errorData = request.responseJSON;
+        $("#responseCheck").html(errorData);
+        showModalAdminError(errorData.message);
+    })
+}
+
+
+function createRole(nameRole,maxTransAmmount, maxDayAmmount,permisos,autorizations){
+	$(".loader").removeClass("hidden");
+    $.ajax({
+        type: "POST",
+        url: appname + "/admin/save-role",
+        data: {
+            name:nameRole,
+            maxTransAmmount: maxTransAmmount,
+            maxDayAmmount: maxDayAmmount,
+            roles: JSON.stringify(permisos),
+            autorizations: JSON.stringify(autorizations),
+            products : JSON.stringify(LIST_PRODUCTOS)
+        }
+    }).done(function (data) {
+    	$(".loader").addClass("hidden");
+        confirmCreation(data);
+    }).fail(function (request, status, error) {
+    	$(".loader").addClass("hidden");
+        var errorData = request.responseJSON;
+        $("#responseCheck").html(errorData);
+        showModalAdminError(errorData.message);
+    })
+}
+
+function confirmCreation(data){
+    setTimeout(function(){
+        showSucessMessage("Rol Creado exitosamente");
+        $("#titulo-admin").css("font-size","20px");
+        $("#container-main").addClass("content-main");
+    },3000);
+    cleanFields();
+}
+
+function confirmUpdate(data){
+    $("#genericNotification").slideDown(200);
+    setTimeout(function(){
+        showSucessMessage("Rol Modificado exitosamente");
+        $("#titulo-admin").css("font-size","20px");
+        $("#container-main").addClass("content-main");
+    },3000);
+
+    showRolesList();
+}
+
+function cleanFields(){
+    $("#roleName").val("");
+    $("#maxTransAmmount").val("");
+    $("#maxDayAmmount").val("");
+
+    $(".check-permiso").each(function(){
+        $(this).prop("checked",false);
+    })
+
+    resetAuts();
+}
+
+function resetAuts(){
+    $("#aut-class").each(function(){
+        $(this).val("");
+    });
+
+    $("#row-aut").each(function(){
+        $(this).addClass("hidden");
+    })
+
+    $("#cantAutorizations").addClass("hidden")
+}
+
+
+function updateRole(nameRole,maxTransAmmount, maxDayAmmount,permisos,autorizations){
+	$(".loader").removeClass("hidden");
+    $.ajax({
+        type: "POST",
+        url: appname + "/admin/update-role",
+        data: {
+            name:nameRole,
+            maxTransAmmount: maxTransAmmount,
+            maxDayAmmount: maxDayAmmount,
+            permisosRole: JSON.stringify(permisos),
+            autorizations: JSON.stringify(autorizations),
+            products : JSON.stringify(LIST_PRODUCTOS)
+        }
+    }).done(function (data) {
+    	$(".loader").addClass("hidden");
+        confirmUpdate(data);
+    }).fail(function (request, status, error) {
+    	$(".loader").addClass("hidden");
+        var errorData = request.responseJSON;
+        $("#responseCheck").html(errorData);
+        showModalAdminError(errorData.message);
+    })
+}
+
+function loadUserDetail(id,doc, nombre, tRol){
+    $(".loader").removeClass("hidden");
+    $.ajax({
+        type: "POST",
+        url: appname + "/admin/user-detail",
+        data: {
+            idUser: id,
+            document: doc,
+            userRole :tRol
+        }
+    }).done(function(data){
+        $(".loader").addClass("hidden");
+        $("#users").html("");
+        $("#users").html(data);
+        $("#nombre-user").val(nombre.toLowerCase());
+        $("#documento-user").val(doc);
+        $("#codUser").val(id);
+    }).fail(function(request, status, error){
+        $(".loader").addClass("hidden");
+        var errorData = request.responseJSON;
+        showModalAdminError(errorData.message);
+    });
+
+}
+
+function loadRoleDetail(id){
+    $(".loader").removeClass("hidden");
+    $.ajax({
+        type: "POST",
+        url: appname + "/admin/edit-rol",
+        data: {
+            id_role: id
+        }
+    }).done(function(data){
+        $(".loader").addClass("hidden");
+        $("#edit").html(data);
+    }).fail(function(request, status, error){
+        $(".loader").addClass("hidden");
+        var errorData = request.responseJSON;
+        ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+        
+    });
+}
+
+function deleteRole(id){
+    $(".loader").removeClass("hidden");
+    $.ajax({
+        type: "POST",
+        url: appname + "/admin/delete-rol",
+        data: {
+            id_role: id
+        }
+    }).done(function(data){
+        $(".loader").addClass("hidden");
+        showRolesList();
+        showSucessMessage("Rol eliminado correctamente");
+        $("#titulo-admin").css("font-size","20px");
+    }).fail(function(request, status, error){
+        $(".loader").addClass("hidden");
+        var errorData = request.responseJSON;
+        showModalAdminError(errorData.message);
+    });
+}
+
+
+function loadRolPermisions(uuid) {
+
+    $.ajax({
+        type: "POST",
+        url: appname + "/admin/lista-rol-permisions",
+        data: {
+            uuid: uuid,
+        }
+    }).done(function (data) {
+        $(".permiso-item").each(function () {
+            data.forEach(function (element) {
+                if (element.checked === 'false') {
+                    $(this).find(".excelent").attr('hidden', true);
+                } else {
+                    $(this).find(".excelent").attr('hidden', false);
+                }
+            })
+
+        })
+
+
+    }).fail(function (request, status, error) {
+        var errorData = request.responseJSON;
+        ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+    });
+}
+
+function showFullFillError(emptyField){
+    var msg = 'Debe ingresar un '+emptyField;
+    $("#fullfillError").hide();
+    $("#fullfillError").show();
+    $("#fullfillError").removeClass("hidden");
+    $("#msg").text(msg);
+    $('html, body').animate({scrollTop: 0}, 800);
+}
+
+function showSucessMessage(message){
+    var msg = message;
+    $("#sucessMessage").hide();
+    $("#sucessMessage").show();
+    $("#sucessMessage").removeClass("hidden");
+    $("#smsg").text(msg);
+    $('html, body').animate({scrollTop: 0}, 800);
+}
+
+function Producto(idProduct, nombre){
+    this.idProducto = idProduct;
+    this.nombre = nombre;
+}
+
+

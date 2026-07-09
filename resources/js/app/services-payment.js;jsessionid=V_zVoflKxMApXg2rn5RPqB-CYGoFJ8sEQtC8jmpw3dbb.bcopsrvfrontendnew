@@ -1,0 +1,721 @@
+var PRODUCT_TEXT = "";
+var CLASSIFICATION_NAME = "";
+var CLASSIFICATION_CODE = "";
+var SERVICE_NAME = "";
+var COD_SERVICE = "";
+var TEXT_SERVICE = "";
+var INSTANCE_ID = "";
+var DETAIL = "";
+var ID_GENERIC_ERROR = "genericError";
+var DIV_SUB_SERVICE_DISPLAY = false;
+var DIRECT_ACCESS = false;
+var ACCOUNT_SELECTED = false;
+var SUB_SERVICE = false;
+var ACCOUNT_SERVICES_NUMBER = "";
+var CARRIER_CODE = "";
+
+var CODE_SERVICE ="";
+var NAME_SERVICE = "";
+var DESCRIPTION_SERVICE = "";
+//funcion para llamar al controlador que nos muestra el primer paso
+
+function getServices(accountNumber, coin) {
+
+    if (accountNumber === "" || coin === "USD") {
+        location.href = '/bancop/services/get-services';
+    } else {
+        getServicesPaymentAccount(accountNumber);
+    }
+
+}
+function saveServicesPaymentData(serviceCod, serviceName, classificationCod) {
+    COD_SERVICE = serviceCod;
+    SERVICE_NAME = serviceName;
+    CLASSIFICATION_CODE = classificationCod;
+}
+function getSaveServicesAccount(account, serviceCod, serviceName, classificationCod) {
+    saveServicesPaymentData(serviceCod, serviceName, classificationCod);
+    getServicesPaymentSelected(account);
+}
+//metodo que envia la cuenta seleccionada en el acceso directo de los servicios
+function getServicesPaymentSelected(accountNumber) {
+    var fields = {
+        account: accountNumber,
+        cname: CLASSIFICATION_CODE,
+        service_id: COD_SERVICE
+    }
+    var $form = $('<form>', {
+        action: '/bancop/services/selected',
+        method: 'post'
+    }).append(
+            $.map(fields, function (val, key) {
+                return $('<input>').attr({
+                    type: "hidden",
+                    name: key,
+                    value: val
+                })
+            })
+            )
+    $form.appendTo('body').submit();
+
+}
+//metodo que envia la cuenta seleccionada al controlador
+function getClassifications(accountNumber) {
+    PRODUCT_TEXT = $("#numberProduct option:selected").text();
+    $(".loader").removeClass("hidden");
+    $.ajax({
+        type: "POST",
+        url: "/bancop/services/classifications",
+        data: {
+            account: accountNumber
+        }
+    }).done(function (data) {
+        $(".loader").addClass("hidden");
+        $("#step-1").addClass("hidden");
+        $("#step-2").removeClass("hidden");
+        $("#step-2").html(data);
+        var height = $(".box-step-entrust-pointer.step-1-left").height();
+        $(".heigth-right-step-entrust.step-1-right").height(height);
+
+        var height1 = $(".pos-2-left").height();
+        //height1 -= 20;
+        $(".pos-2-right").height(height1);
+        $("div.step-2-right").css("height", "100%");
+
+    }).fail(function (request, status, error) {
+        $(".loader").addClass("hidden");
+        var errorData = request.responseJSON;
+        ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+    })
+}
+//funcion que recibe el codigo de clasificacion de pago de servicios y lo envia al controlador
+function election(codeClassification, nameClassification) {
+    CLASSIFICATION_NAME = nameClassification;
+    CLASSIFICATION_CODE = codeClassification;
+    PRODUCT_TEXT = $('#numberCuenta').text();
+    $("#classifications-services-container button").attr("disabled", "disabled");
+    $(".loader").removeClass("hidden");
+    $.ajax({
+        type: "POST",
+        url: "/bancop/services/list-services",
+        data: {
+            cname: codeClassification
+        }
+    }).done(function (data) {
+        $(".loader").addClass("hidden");
+        $("#step-1").addClass("hidden");
+        $("#step-2").addClass("hidden");
+        $("#step-3").removeClass("hidden");
+        $("#step-3").html(data);
+
+        $("#nameClassification").text(CLASSIFICATION_NAME);
+        $('#numberCuenta-step-3').text(PRODUCT_TEXT);
+        $('#numberCuenta').text(PRODUCT_TEXT);
+
+
+        if (ACCOUNT_SELECTED) {
+            $("div#step-3 .step-2-left:eq(0)").removeAttr("onclick");
+        }
+        setTimeout(function () {
+            var height1 = $("#step-3 .pos-3-left").height();
+
+            $("#step-3 .pos-3-right").height(height1);
+            $("#step-3 .step-3-right").css("height", "100%");
+        }, 500);
+
+
+    }).fail(function (request, status, error) {
+        $(".loader").addClass("hidden");
+        var errorData = request.responseJSON;
+        ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+        $("#classifications-services-container button").removeAttr("disabled");
+    })
+
+}
+//funcion para validar si el servicio tiene agrupador o no
+
+//funcion que recibe el codigo del servicio elegido y lo envia al controlador
+function electionService(codService, nameService, descriptionService, codigoClasif, nombreClasif) {
+    console.log("Entro en esta parte")
+    console.log("El codigo del servicio es :",codService)
+    CODE_SERVICE = codService;
+    NAME_SERVICE = nameService;
+    DESCRIPTION_SERVICE = descriptionService;
+
+    console.log("Codigo ", codigoClasif, "Nombre ", nombreClasif)
+    CLASSIFICATION_CODE = codigoClasif;
+    CLASSIFICATION_NAME = nombreClasif;
+    var subServiceDiv = $("#div-service-" + codService).size();
+    $("#btn-" + COD_SERVICE).removeAttr("style"); //se quita el estilo de estar clickeado al anterior
+    $("#btn-" + COD_SERVICE + " div.arrow-up").addClass("hidden");
+
+    if (subServiceDiv > 0) {
+
+        $("#div-service-" + COD_SERVICE).addClass("hidden");
+        if (COD_SERVICE === codService && DIV_SUB_SERVICE_DISPLAY) {//si vuelve a dar click en el padre cierra el div de hijos
+            $("#div-service-" + COD_SERVICE).addClass("hidden");
+            $(".btn-" + COD_SERVICE + " div.arrow-up").addClass("hidden");
+            DIV_SUB_SERVICE_DISPLAY = false;
+            $(".div-line-top").addClass("hidden");
+            $(".div-line-bottom").addClass("hidden");
+        } else if (COD_SERVICE !== codService && DIV_SUB_SERVICE_DISPLAY) {
+            $("#div-service-" + COD_SERVICE).addClass("hidden");
+            $(".btn-" + COD_SERVICE + " div.arrow-up").addClass("hidden");
+            $("#div-service-" + codService).removeClass("hidden");
+            $(".btn-" + codService + " div.arrow-up").removeClass("hidden");
+            $(".div-line-top").removeClass("hidden");
+            $(".div-line-bottom").removeClass("hidden");
+
+        } else {
+            DIV_SUB_SERVICE_DISPLAY = true;
+
+            $("#div-service-" + codService).removeClass("hidden");
+            $(".btn-" + codService + " div.arrow-up").removeClass("hidden");
+            $(".div-line-top").removeClass("hidden");
+            $(".div-line-bottom").removeClass("hidden");
+        }
+        COD_SERVICE = codService;
+
+        $("#btn-" + COD_SERVICE).css("border", "3px solid #006ea2"); //se simula estar clickeado el boton padre
+        $("#btn-" + COD_SERVICE).css("border-radius", "10px");
+        $("#btn-" + COD_SERVICE).css("width", "100%");
+
+        $(".div-line-bottom").width($("div.pos-1-left").width() - 32);
+        $(".div-line-top").width($("div.pos-1-left").width() - 32);
+        $(".div-line-top").css("margin-left", "-" + ($(".div-val").width() + 27) + "px");
+        $(".div-line-bottom").css("margin-left", "-" + ($(".div-val").width() + 27) + "px");
+
+
+        $("div.pos-1-right").height($("div.pos-1-left").height());
+        $("div.step-1-right").css("height", "100%");
+    } else {
+        SERVICE_NAME = nameService + "-" + descriptionService;
+        url_service = "/bancop/services/service";
+        console.log("Codigo de servicio: ", codService)
+        $(".loader").removeClass("hidden");
+        $.ajax({
+            type: "POST",
+            url: url_service,
+            data: {
+                service_id: codService,
+                cname: CLASSIFICATION_CODE,
+                reload: "N"
+            }
+        }).done(function (data) {
+
+            if (codService == 1043000002 || codService == 1043000003 || codService == 1043000004 || codService == 1043000005) {
+                console.log("codigo de aduana");
+                
+                $(".loader").addClass("hidden");
+                $("#step-1").addClass("hidden");
+                $("#step-2").addClass("hidden");
+                $("#step-3").addClass("hidden");
+                $("#step-4").removeClass("hidden");
+                $("#step-4").html(data);
+
+                //$("#nameClassification-step-4").text(CLASSIFICATION_NAME);
+                //$('#numberCuenta-step-4').text(PRODUCT_TEXT);
+            } else {
+                console.log("codigo de servicio no aduana");
+
+                let fromAccount = $("#fromAccount").val();
+
+                if(fromAccount == "") {
+                    $(".loader").addClass("hidden");
+                    $("#step-1").addClass("hidden");
+                    $("#step-2").removeClass("hidden");
+                    $("#step-2").html(data);
+                    $("#step-3").addClass("hidden");
+                    $("#step-4").addClass("hidden");
+                } else {
+                    SERVICE_NAME = descriptionService + "-" + nombreClasif;
+                    /*$(".loader").addClass("hidden");
+                    $("#step-1").addClass("hidden");
+                    $("#step-2").addClass("hidden");
+                    $("#step-3").removeClass("hidden");
+                    $("#step-3").html(data);
+                    $("#step-4").addClass("hidden");*/
+                    $(".loader").addClass("hidden");
+                    $("#step-1").addClass("hidden");
+                    $("#step-2").addClass("hidden");
+                    $("#step-3").addClass("hidden");
+                    $("#step-4").removeClass("hidden");
+                    $("#step-4").html(data);
+
+                    $("#nameClassification-step-4").text(fromAccount);
+                    console.log("Product text", fromAccount);
+                    console.log("Service name", SERVICE_NAME);
+                    $('#number_cuenta-step-4').text(fromAccount);
+                    $("#name_service").text(SERVICE_NAME);
+                    var height1 = $("div.step-41-left").height();
+                    $("div.pos-41-right").height(height1);
+                    $("div.step-41-right").height(height1);
+
+                    var height2 = $("div.step-42-left").height();
+                    $("div.pos-42-right").height(height2);
+                    $("div.step-42-right").height(height2);
+
+                    var height3 = $("div.step-43-left").height();
+                    $("div.pos-43-right").height(height3);
+                    $("div.step-43-right").height(height3);
+                }
+                
+
+
+                //$("#nameClassification-step-4").text(CLASSIFICATION_NAME);
+                //$('#numberCuenta-step-4').text(PRODUCT_TEXT);
+            }
+
+            $("#nameService").text(SERVICE_NAME);
+            var height1 = $("div.step-21-left").height();
+            console.log("Seteamos al siv 1", height1)
+            $("div.step-21-right").height(height1);
+
+            var height2 = $("div.step-22-left").height();
+            console.log("Seteamos al siv 2", height2)
+            $("div.pos-22-right").height(height2);
+            $("div.step-22-right").height(height2);
+
+            if (ACCOUNT_SELECTED) {
+                $("div#step-4 .step-1-left:eq(0)").removeAttr("onclick");
+            }
+            if (SUB_SERVICE) {
+                //$("div#step-4 .step-2-left:eq(0)").removeAttr("onclick");
+                $("div#step-4 .step-3-left").removeAttr("onclick");
+                $("div#step-4 .step-1-left:eq(1)").removeAttr("onclick");
+                $("div#step-4 .step-1-left:eq(1)").attr("onclick", "servicesPaymentToStepTree()");
+            }
+        }).fail(function (request, status, error) {
+            $(".loader").addClass("hidden");
+            var errorData = request.responseJSON;
+            ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+        });
+    }
+}
+
+function registerServicePayment(cuenta, typeMedia) {
+    SERVICE_NAME = SERVICE_NAME + "-" + CLASSIFICATION_NAME;
+    url_service = "/bancop/services/service/init-pay";
+
+    $(".loader").removeClass("hidden");
+    $.ajax({
+        type: "POST",
+        url: url_service,
+        data: {
+            service_id: COD_SERVICE,
+            cname: CLASSIFICATION_CODE,
+            carrierCode: CARRIER_CODE,
+            productNumber: cuenta,
+            productType: typeMedia
+        }
+    }).done(function (data) {
+        $(".loader").addClass("hidden");
+        $("#step-1").addClass("hidden");
+        $("#step-2").addClass("hidden");
+        $("#step-3").addClass("hidden");
+        $("#step-4").removeClass("hidden");
+        $("#step-4").html(data);
+        
+        console.log("Tipo de cuenta:: ", typeMedia);
+
+        $("#nameClassification-step-4").text(PRODUCT_TEXT);
+        console.log("Product text", PRODUCT_TEXT);
+        console.log("Service name", SERVICE_NAME);
+        $('#number_cuenta-step-4').text(PRODUCT_TEXT);
+        $("#name_service").text(SERVICE_NAME);
+        var height1 = $("div.step-41-left").height();
+        $("div.pos-41-right").height(height1);
+        $("div.step-41-right").height(height1);
+
+        var height2 = $("div.step-42-left").height();
+        $("div.pos-42-right").height(height2);
+        $("div.step-42-right").height(height2);
+
+        var height3 = $("div.step-43-left").height();
+        $("div.pos-43-right").height(height3);
+        $("div.step-43-right").height(height3);
+
+    }).fail(function (request, status, error) {
+        $(".loader").addClass("hidden");
+        var errorData = request.responseJSON;
+        ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+    });
+}
+
+function processPayment(instanceId) {
+    url_service = "/bancop/service/process/" + instanceId;
+    var form = $("#frmServicio");
+    INSTANCE_ID = instanceId;
+    $(".loader").removeClass("hidden");
+    $("#buttonProcessPayment").attr("disabled", "disabled");
+    $.ajax({
+        type: "POST",
+        url: url_service,
+        data: form.serialize()
+    }).done(function (data) {
+        let fromAccount = $("#fromAccount").val();
+        if(fromAccount != "") {
+            PRODUCT_TEXT = fromAccount
+        }
+
+        $(".loader").addClass("hidden");
+        $("#step-1").addClass("hidden");
+        //  $("#step-2").addClass("hidden");
+        $("#step-3").addClass("hidden");
+        $("#step-4").addClass("hidden");
+        $("#buttonProcessPayment").removeAttr("disabled");
+        $("#step-5").removeClass("hidden");
+        $("#step-5").html(data);
+        var detail = $(".detail")[1].value;
+        var detailSubService = $(".detail")[2];
+
+
+        if (detail === "false" || detail === undefined || detail === "" || detail === null) {
+            $("#nameClassification-step-5").text(CLASSIFICATION_NAME);
+            $('#numberCuenta-step-5').text(PRODUCT_TEXT);
+            $("#nameService-step-5").text(SERVICE_NAME);
+            var height = $("div.step-4-left-container").height();
+            $("div.step-4-right-container").height(height);
+            var height1 = $("div.step-5-left").height();
+            $("div.pos-5-right").height(height1);
+            $("div.step-5-right").height(height1);
+
+            TEXT_SERVICE = $("#dataChargedPaymentService").text();
+        } else if (detailSubService !== undefined && detailSubService.value === "false") {
+            $("#nameClassification-step-5").text(CLASSIFICATION_NAME);
+            $('#numberCuenta-step-5').text(PRODUCT_TEXT);
+            $("#nameService-step-5").text(SERVICE_NAME);
+            var height = $("div.step-4-left-container").height();
+            $("div.step-4-right-container").height(height);
+            var height1 = $("div.step-5-left").height();
+            $("div.pos-5-right").height(height1);
+            $("div.step-5-right").height(height1);
+
+            TEXT_SERVICE = $("#dataChargedPaymentService").text();
+        } else {
+            $("#step-5").html("");
+            $("#step-5").addClass("hidden");
+            $("#step-4").removeClass("hidden");
+            $(".service-detail").html(data);
+            $(".service-detail").removeClass("hidden");
+            $("#buttonProcessPayment").addClass("hidden");
+            $(".button-detail-process").addClass("hidden");
+            var height1 = $("div.step-4-left").height();
+            $("div.pos-4-right").height(height1);
+            $("div.step-4-right").height(height1);
+            $("div.step-4-right").removeClass("icon-div-selected");
+
+        }
+
+    }).fail(function (request, status, error) {
+        $(".loader").addClass("hidden");
+        $("#buttonProcessPayment").removeAttr("disabled");
+        var errorData = request.responseJSON;
+        ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+    });
+}
+function selectDetail(detail, instanceId) {
+    $(".detail-father").children("div").removeClass("div-line-top");
+    $("." + detail).addClass("div-line-top");
+    DETAIL = detail;
+    INSTANCE_ID = instanceId
+}
+
+function processPaymentDetail() {
+    url_service = "/bancop/service/details";
+    $(".loader").removeClass("hidden");
+    $("#buttonProcessPaymentDetail").attr("disabled", "disabled");
+    var amountEdit = $("#" + INSTANCE_ID + "__" + DETAIL + "__monto").val();
+    $.ajax({
+        type: "POST",
+        url: url_service,
+        data: {
+            detail: DETAIL,
+            instanceId: INSTANCE_ID,
+            amountEdit: amountEdit
+        }
+    }).done(function (data) {
+        let fromAccount = $("#fromAccount").val();
+        if(fromAccount != "") {
+            PRODUCT_TEXT = fromAccount
+        }
+
+        $(".loader").addClass("hidden");
+        $("#step-1").addClass("hidden");
+        // $("#step-2").addClass("hidden");
+        $("#step-3").addClass("hidden");
+        $("#step-4").addClass("hidden");
+        $("#buttonProcessPaymentDetail").removeAttr("disabled");
+        $("#step-5").removeClass("hidden");
+        $("#step-5").html(data);
+        $("#nameClassification-step-5").text(CLASSIFICATION_NAME);
+        $('#numberCuenta-step-5').text(PRODUCT_TEXT);
+        $("#nameService-step-5").text(SERVICE_NAME);
+        var height1 = $("div.step-5-left").height();
+        var height2 = $("div.step-4-left-container").height();
+        $("div.step-4-right-container").height(height2);
+        $(".icon-transfer-step-two-small").height($("div.step-4-right-container").height());
+        $("div.pos-5-right").height(height1);
+        $("div.step-5-right").height(height1);
+        TEXT_SERVICE = $("#dataChargedPaymentService").text();
+        if (DIRECT_ACCESS) {
+            $("div#step-5 .step-2-left, .step-3-left, .step-4-left-container").removeAttr("onclick");
+            var valCodeService = "'" + $("#codeServiceSelected").val() + "'";
+            var valCodeClassification = "'" + $("#codeClassificationSelected").val() + "'";
+            var nameService = "'" + $("#nameServiceSelected").val() + "'";
+            $("div#step-5 .step-2-left:eq(0)").attr("onclick",
+                    "showModalServicesPaymentGoBack(" + valCodeService + "," + nameService + "," + valCodeClassification + ")");
+        }
+        if (ACCOUNT_SELECTED) {
+            $("div#step-5 .step-2-left:eq(0)").removeAttr("onclick");
+        }
+    }).fail(function (request, status, error) {
+        $(".loader").addClass("hidden");
+        $("#buttonProcessPaymentDetail").removeAttr("disabled");
+        var errorData = request.responseJSON;
+        ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+    });
+}
+
+function verifyTransactionalKey() {
+    var keyVal = $("#clave").val();
+    var instanceId = $(".intanceIdVal").val();
+    url_service = "/bancop/services/key";
+    $(".loader").removeClass("hidden");
+    $("#confirmServicePayment").attr("disabled", "disabled");
+    $.ajax({
+        type: "POST",
+        url: url_service,
+        data: {
+            key: keyVal,
+            instanceId: instanceId
+        }
+    }).done(function (data) {
+        let fromAccount = $("#fromAccount").val();
+        if(fromAccount != "") {
+            PRODUCT_TEXT = fromAccount
+        }
+        $(".loader").addClass("hidden");
+        $("#step-1").addClass("hidden");
+        //$("#step-2").addClass("hidden");
+        $("#step-3").addClass("hidden");
+        $("#step-4").addClass("hidden");
+        $("#step-5").addClass("hidden");
+        $("#confirmServicePayment").removeAttr("disabled");
+        $("#step-6").removeClass("hidden");
+        $("#step-6").html(data);
+
+        $("#nameClassification-step-6").text(CLASSIFICATION_NAME);
+        $('#numberCuenta-step-6').text(PRODUCT_TEXT);
+        $("#nameService-step-6").text(SERVICE_NAME);
+        $("#dataChargedPaymentService-step-6").text(TEXT_SERVICE);
+        var height2 = $("div.step-4-left-container-6").height();
+        $("div.step-4-right-container-6").height(height2);
+        $(".icon-transfer-step-two-small").height($("div.step-4-right-container-6").height());
+        if (DIRECT_ACCESS) {
+            $("div#step-6 .step-2-left, .step-3-left, .step-4-left-container-6, .step-53-left").removeAttr("onclick");
+        }
+        if (ACCOUNT_SELECTED) {
+            $("div#step-6 .step-2-left, .step-3-left, .step-4-left-container-6, .step-53-left").removeAttr("onclick");
+        }
+
+    }).fail(function (request, status, error) {
+        $(".loader").addClass("hidden");
+        $("#confirmServicePayment").removeAttr("disabled");
+        var errorData = request.responseJSON;
+        ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+    });
+
+}
+function getServicesPaymentAccount(accountNumber) {
+
+    var fields = {
+        account: accountNumber,
+    }
+    var $form = $('<form>', {
+        action: '/bancop/services/account/access',
+        method: 'post'
+    }).append(
+            $.map(fields, function (val, key) {
+                return $('<input>').attr({
+                    type: "hidden",
+                    name: key,
+                    value: val
+                })
+            })
+            )
+    $form.appendTo('body').submit();
+
+}
+
+function downloadServicesPaymentReport(numberOperation, tokenTransactionPS){
+	var params = 'numberOperation=' + numberOperation + '&tokenTransaction=' + tokenTransactionPS;
+	console.log("Parametros enviados: ", params);
+    var req = new XMLHttpRequest();
+    req.open("POST", appname + "/services/servicespdf", true);
+    req.responseType = "blob";
+    req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    req.onload = function () {
+    	if(req.status === 200){
+    		var blob = req.response;
+            var fileName = 'pago-servicios' + '-' + numberOperation + '.pdf';
+            downloadAllReport(blob, fileName);
+    	}else{
+    		showModalGenericError("Error al generar el Comprobante");
+    	}
+    };
+    req.send(params);
+}
+
+function servicesSendEmail(email, subject, message, typeTransaction, numberOperation) {
+    $.ajax({
+        type: "POST",
+        url: appname + "/services/email",
+        data: {
+            email: email,
+            asunto: subject,
+            mensaje: message,
+            typeTransaction: typeTransaction,
+            numberOperation: numberOperation,
+            numberProduct: ACCOUNT_SERVICES_NUMBER,
+        }
+    }).done(function (data) {
+        $("#emailDiv").addClass("hidden");
+    }).fail(function (request, status, error) {
+        var errorData = request.responseJSON;
+        ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+    })
+}
+
+function servicesSendSms(number, typeTransaction, numberOperation) {
+
+    $.ajax({
+        type: "POST",
+        url: appname + "/services/sms",
+        data: {
+            numberPhone: number,
+            typeTransaction: typeTransaction,
+            numberOperation: numberOperation,
+            numberProduct: ACCOUNT_SERVICES_NUMBER,
+        }
+    }).done(function (data) {
+        $("#smsDiv").addClass("hidden");
+    }).fail(function (request, status, error) {
+        var errorData = request.responseJSON;
+        ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+    })
+
+}
+
+function servicesPaymentToStepTwoFromAccount() {
+    let fromAccount = $("#fromAccount").val();
+    if(fromAccount != "") {
+        reloadPaymentMedia(CODE_SERVICE, NAME_SERVICE, DESCRIPTION_SERVICE, CLASSIFICATION_CODE, CLASSIFICATION_NAME)
+    } else {
+        servicesPaymentToStepTwo();
+    }
+}
+
+function reloadPaymentMedia(codService, nameService, descriptionService, codigoClasif, nombreClasif) {
+    SERVICE_NAME = nameService + "-" + descriptionService;
+    url_service = "/bancop/services/service";
+    console.log("Codigo de servicio: ", codService)
+    $(".loader").removeClass("hidden");
+    $.ajax({
+        type: "POST",
+        url: url_service,
+        data: {
+            service_id: codService,
+            reload: 'S',
+            cname: CLASSIFICATION_CODE
+        }
+    }).done(function (data) {
+
+        if (codService == 1043000002 || codService == 1043000003 || codService == 1043000004 || codService == 1043000005) {
+            console.log("codigo de aduana");
+
+            $(".loader").addClass("hidden");
+            $("#step-1").addClass("hidden");
+            $("#step-2").addClass("hidden");
+            $("#step-3").addClass("hidden");
+            $("#step-4").removeClass("hidden");
+            $("#step-4").html(data);
+
+            //$("#nameClassification-step-4").text(CLASSIFICATION_NAME);
+            //$('#numberCuenta-step-4').text(PRODUCT_TEXT);
+        } else {
+            console.log("codigo de servicio no aduana");
+
+            let fromAccount = $("#fromAccount").val();
+
+            if(fromAccount == "") {
+                $(".loader").addClass("hidden");
+                $("#step-1").addClass("hidden");
+                $("#step-2").removeClass("hidden");
+                $("#step-2").html(data);
+                $("#step-3").addClass("hidden");
+                $("#step-4").addClass("hidden");
+            } else {
+                SERVICE_NAME = descriptionService + "-" + nombreClasif;
+                /*$(".loader").addClass("hidden");
+                $("#step-1").addClass("hidden");
+                $("#step-2").addClass("hidden");
+                $("#step-3").removeClass("hidden");
+                $("#step-3").html(data);
+                $("#step-4").addClass("hidden");*/
+                $(".loader").addClass("hidden");
+                $("#step-1").addClass("hidden");
+                $("#step-2").addClass("hidden");
+                $("#step-3").addClass("hidden");
+                $("#step-4").removeClass("hidden");
+                $("#step-4").html(data);
+
+                $("#nameClassification-step-4").text(fromAccount);
+                console.log("Product text", fromAccount);
+                console.log("Service name", SERVICE_NAME);
+                $('#number_cuenta-step-4').text(fromAccount);
+                $("#name_service").text(SERVICE_NAME);
+                var height1 = $("div.step-41-left").height();
+                $("div.pos-41-right").height(height1);
+                $("div.step-41-right").height(height1);
+
+                var height2 = $("div.step-42-left").height();
+                $("div.pos-42-right").height(height2);
+                $("div.step-42-right").height(height2);
+
+                var height3 = $("div.step-43-left").height();
+                $("div.pos-43-right").height(height3);
+                $("div.step-43-right").height(height3);
+            }
+
+
+
+            //$("#nameClassification-step-4").text(CLASSIFICATION_NAME);
+            //$('#numberCuenta-step-4').text(PRODUCT_TEXT);
+        }
+
+        $("#nameService").text(SERVICE_NAME);
+        var height1 = $("div.step-21-left").height();
+        console.log("Seteamos al siv 1", height1)
+        $("div.step-21-right").height(height1);
+
+        var height2 = $("div.step-22-left").height();
+        console.log("Seteamos al siv 2", height2)
+        $("div.pos-22-right").height(height2);
+        $("div.step-22-right").height(height2);
+
+        if (ACCOUNT_SELECTED) {
+            $("div#step-4 .step-1-left:eq(0)").removeAttr("onclick");
+        }
+        if (SUB_SERVICE) {
+            //$("div#step-4 .step-2-left:eq(0)").removeAttr("onclick");
+            $("div#step-4 .step-3-left").removeAttr("onclick");
+            $("div#step-4 .step-1-left:eq(1)").removeAttr("onclick");
+            $("div#step-4 .step-1-left:eq(1)").attr("onclick", "servicesPaymentToStepTree()");
+        }
+    }).fail(function (request, status, error) {
+        $(".loader").addClass("hidden");
+        var errorData = request.responseJSON;
+        ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+    });
+}

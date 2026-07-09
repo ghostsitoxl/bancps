@@ -1,0 +1,25 @@
+
+/**
+ * Created by mirna on 14/7/2017.
+ */
+//Funcion para obtener un prestamo y sus detalles
+function getReturned(idProducto)
+{
+    var fields = {
+        numberProduct: idProducto,
+    }
+
+    var $form = $('<form>', {
+        action: appname+'/returned',
+        method: 'post'
+    }).append(
+        $.map(fields, function (val, key) {
+            return $('<input>').attr({
+                type: "hidden",
+                name: key,
+                value: val
+            })
+        })
+    )
+    $form.appendTo('body').submit();
+}

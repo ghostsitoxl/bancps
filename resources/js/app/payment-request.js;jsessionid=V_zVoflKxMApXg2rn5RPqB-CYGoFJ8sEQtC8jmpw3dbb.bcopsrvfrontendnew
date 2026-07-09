@@ -1,0 +1,318 @@
+function goBackToStepOnePayment() {
+
+    $("#step-1").removeClass("hidden");
+    $("#step-2").addClass("hidden");
+    $("#step-3").addClass("hidden");
+    $("#step-4").addClass("hidden");
+    $("#step-5").addClass("hidden");
+    $("#step-6").addClass("hidden");
+
+    //Rehabilitar cualquier campo desabilitado
+    $("#select-account2").prop("disabled", false);
+    $("#transfer-ammount").prop("disabled", false);
+
+    var height1 = $("div.step-1-left").height();
+    height1 = height1 + 20;
+    $("div.step-1-right").css('height', height1);
+
+}
+
+function validateProductDestination() {
+    let allOK = true;
+    var validateForm = [];
+    if (applicationMedium == 'Carga Datos')
+        validateForm = ["entity", "account", "name", "typeDocument", "document", "amount"]
+    else if (applicationMedium == 'ALIAS')
+        validateForm = ["alias", "amount"]
+
+    validateForm.forEach(function (campo) {
+        if ($("#" + campo).val() === "" || $("#" + campo).val() === "0") {
+            $("#" + campo).addClass("orange-background");
+            $("#error-" + campo).removeClass("hidden");
+            allOK = false;
+        } else {
+            $("#" + campo).removeClass("orange-background");
+            $("#error-" + campo).addClass("hidden");
+        }
+    });
+
+    var reasonCod = $("#choose-reason option:selected").val();
+    if (reasonCod === "0" || reasonCod === "") {
+        $("#choose-reason").addClass("orange-background");
+        $("#error-choose-reason").text("Seleccione un motivo");
+        allOK = false;
+    } else {
+        $("#choose-reason").removeClass("orange-background");
+        $("#error-choose-reason").text("");
+    }
+
+    if (currency === "0" || currency === "") {
+        $("#typeCoin").addClass("orange-background");
+        $("#error-typeCoin").removeClass("hidden");
+        allOK = false;
+    } else {
+        $("#typeCoin").removeClass("orange-background");
+        $("#error-typeCoin").addClass("hidden");
+    }
+
+    return allOK
+
+}
+
+function emptyFormRequestPayment() {
+    var validateForm = [];
+    if (applicationMedium == 'ALIAS')
+        validateForm = ["entity", "account", "name", "typeDocument", "document", "amount"]
+    else if (applicationMedium == 'Carga Datos')
+        validateForm = ["alias", "amount"]
+    validateForm.forEach(function (campo) {
+        $("#" + campo).removeClass("orange-background");
+        $("#error-" + campo).addClass("hidden");
+        $("#" + campo).val('');
+    });
+    $("#choose-reason").removeClass("orange-background");
+    $("#error-choose-reason").text("");
+    $("#entity").val('0');
+    $("#choose-reason").val('0');
+    $("#typeDocument").val('0');
+    $("#choose-reason-text").addClass("hidden");
+
+
+}
+
+function registerPaymentReturn(transfer) {
+    $(".loader").removeClass("hidden");
+    $("#buttonRegisterReturn").attr("disabled", "disabled");
+
+    $.ajax({
+        type: "POST",
+        url: appname + "/payment/register",
+
+        data: {
+            requestPayment: JSON.stringify(transfer),
+        }
+    }).done(function (data) {
+        $(".loader").addClass("hidden");
+        $("#step-1").addClass("hidden");
+        $("#step-2").addClass("hidden");
+        $("#buttonRegisterReturn").removeAttr("disabled");
+        $("#step-3").html(data);
+        $("#step-3").removeClass("hidden");
+        $("#numberAccountOrigin").text(productTextDestination);
+        $("#productTextDestination").text(numberAccountText);
+
+        var height3 = $("div.step-3-left").height();
+        height3 = height3 + 20;
+        $("div.step-3-right").css('height', height3);
+
+    }).fail(function (request, status, error) {
+        $(".loader").addClass("hidden");
+        $("#buttonRegisterReturn").removeAttr("disabled");
+        var errorData = request.responseJSON;
+        $("#container-main").css('margin-top', '0px');
+        ajaxErrorHandler(errorData, status, error, "genericError");
+    })
+}
+
+function confirmPayment(clave, token, keyAproval) {
+    $(".loader").removeClass("hidden");
+    $("#step-3 #btnConfirmOperation").attr("disabled", "disabled");
+    $.ajax({
+        type: "POST",
+        url: appname + "/payment/confirm",
+        data: {
+            dinamicKey: clave,
+            tokenTransferAproved: token,
+            keyAproval: keyAproval
+        }
+    }).done(function (data) {
+        $(".loader").addClass("hidden");
+        $("#step-1").addClass("hidden");
+        $("#step-2").addClass("hidden");
+        $("#step-3").addClass("hidden");
+        $("#step-3 #buttonReadyToTransfer").removeAttr("disabled");
+        $("#step-4").html(data);
+        $("#step-4").removeClass("hidden");
+        $("#numberCuentaConfirm").text(productTextDestination);
+        $("#numberCuentaConfirmDestination").text(numberAccountText);
+
+        var height42 = $("div.step-41-left").height();
+        height42 = height42 + 20;
+        $("div.step-41-right").css('height', height42);
+
+    }).fail(function (request, status, error, response) {
+        $(".loader").addClass("hidden");
+        $("#step-1").addClass("hidden");
+        $("#step-2").addClass("hidden");
+        $("#step-3").removeClass("hidden");
+        $("#step-4").addClass("hidden");
+        $("#step-3 #btnConfirmOperation").removeAttr("disabled");
+        console.log(request);
+        console.log(error);
+        console.log(status);
+        $("#container-main").css('margin-top', '0px');
+        var errorData = request.responseJSON;
+        console.log(errorData);
+        ajaxErrorHandler(errorData, status, error, "genericError");
+
+    })
+}
+
+
+function confirmTransactionPayment(clave, token, keyAproval) {
+    $(".loader").removeClass("hidden");
+    $("#step-3 #btnConfirmOperation").attr("disabled", "disabled");
+    $.ajax({
+        type: "POST",
+        url: appname + "/payment/confirm",
+        data: {
+            dinamicKey: clave,
+            tokenTransferAproved: token,
+            keyAproval: keyAproval
+        }
+    }).done(function (data) {
+        $(".loader").addClass("hidden");
+        $("#step-3").addClass("hidden");
+        $("#step-3 #buttonReadyToTransfer").removeAttr("disabled");
+        $("#step-4").html(data);
+        $("#step-4").removeClass("hidden");
+
+
+        $("#numberCuentaConfirm").text(productText);
+        $("#numberCuentaConfirmDestination").text(productTextDestination);
+
+        var height42 = $("div.step-41-left").height();
+        height42 = height42 + 20;
+        $("div.step-41-right").css('height', height42);
+
+    }).fail(function (request, status, error, response) {
+        $(".loader").addClass("hidden");
+
+        $("#step-3").addClass("hidden");
+        $("#step-4").addClass("hidden");
+        $("#buttonSelectTransferReturn").removeAttr("disabled");
+        console.log(request);
+        console.log(error);
+        console.log(status);
+        $("#container-main").css('margin-top', '0px');
+        var errorData = request.responseJSON;
+        console.log(errorData);
+        ajaxErrorHandler(errorData, status, error, "genericError");
+
+    })
+}
+
+//Acciones para pago y inicio de pago
+function registerReturnPayment(idProducto, typeRequest) {
+
+    if (idProducto === "") {
+        idProducto = "0";
+    }
+    var fields = {
+        numberProduct: idProducto,
+        typeRequest: typeRequest,
+    }
+    var $form = $('<form>', {
+        action: appname + '/payment/request/register',
+        method: 'post',
+    }).append(
+        $.map(fields, function (val, key) {
+            return $('<input>').attr({
+                type: "hidden",
+                name: key,
+                value: val
+            })
+        })
+    )
+    $form.appendTo('body').submit();
+}
+
+function rejectReturnPayment(idProducto,typeRequest) {
+
+    if (idProducto === "") {
+        idProducto = "0";
+    }
+    var fields = {
+        numberProduct: idProducto,
+        typeRequest: typeRequest,
+    }
+    var $form = $('<form>', {
+        action: appname + '/payment/request/reject',
+        method: 'post',
+    }).append(
+        $.map(fields, function (val, key) {
+            return $('<input>').attr({
+                type: "hidden",
+                name: key,
+                value: val
+            })
+        })
+    )
+    $form.appendTo('body').submit();
+}
+
+/*function getSuscriptionService(){
+    window.location.href = appname + "/service/suscription";
+}*/
+
+function condiciones() {
+    $("#condiciones-ok").val("S")
+}
+
+function getSuscriptionService(action) {
+    if(document.getElementById('condiciones-ok') != null) {
+        var condicionesOk = document.getElementById('condiciones-ok').value;
+        if(condicionesOk == 'N') {
+            return
+        }
+    }
+
+    if (action === "I" || action === "M") {
+        var isChecked = document.getElementById('checkSuscription').checked;
+        var suscription = document.getElementById('checkSuscription').value;
+        if (isChecked && suscription === 'N') {
+            $(".loader").removeClass("hidden");
+            $("#activeSuscription").attr("disabled", "disabled");
+        } else {
+            return
+        }
+    }
+    var fields = {
+        action: action,
+    }
+
+    var $form = $('<form>', {
+        action: appname + '/service/suscription',
+        method: 'get',
+    }).append(
+        $.map(fields, function (val, key) {
+            return $('<input>').attr({
+                type: "hidden",
+                name: key,
+                value: val
+            })
+        })
+    )
+    $form.appendTo('body').submit();
+}
+
+
+function downloadPaymentRequestReturnReport(identifier) {
+    var params = 'paymentIdentifier=' + identifier;
+    var req = new XMLHttpRequest();
+    req.open("POST", appname + "/payment/pdfpayment", true);
+    req.responseType = "blob";
+    req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    req.onload = function () {
+        if(req.status === 200){
+            var blob = req.response;
+            var fileName = 'solicitud-pago' + '-' + identifier + '.pdf';
+            downloadAllReport(blob, fileName);
+        }else{
+            showModalGenericError("Error al generar el Comprobante");
+        }
+
+
+    };
+    req.send(params);
+}
