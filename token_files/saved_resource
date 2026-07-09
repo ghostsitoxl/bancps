@@ -1,0 +1,11 @@
+/**/ console &&console.log &&console.log({"ip":"201.210.103.172","hostname":"201.210-103-172.bto-03-p72.cantv.net","city":"Caracas","region":"Distrito Federal","country":"VE","loc":"10.4880,-66.8792","org":"AS8048 CANTV Servicios, Venezuela","timezone":"America/Caracas","readme":"https://ipinfo.io/missingauth"}); typeof getIP === 'function' && getIP({
+  "ip": "201.210.103.172",
+  "hostname": "201.210-103-172.bto-03-p72.cantv.net",
+  "city": "Caracas",
+  "region": "Distrito Federal",
+  "country": "VE",
+  "loc": "10.4880,-66.8792",
+  "org": "AS8048 CANTV Servicios, Venezuela",
+  "timezone": "America/Caracas",
+  "readme": "https://ipinfo.io/missingauth"
+});

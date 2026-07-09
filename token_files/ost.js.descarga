@@ -1,0 +1,303 @@
+function getOST() {
+    location.href='/bancop/ost';
+}
+
+function getAccount(accountNumber) {
+    var fields = {
+        numberAccount: accountNumber
+    }
+    var $form = $('<form>', {
+        action: appname + '/account',
+        method: 'post'
+    }).append(
+        $.map(fields, function (val, key) {
+            return $('<input>').attr({
+                type: "hidden",
+                name: key,
+                value: val
+            })
+        })
+    )
+    $form.appendTo('body').submit();
+}
+
+function choosePhoneNumber() {
+    let phoneNumber = $("#select-phone-number").val();
+    console.log("Phone number ", phoneNumber);
+    if(phoneNumber == '') {
+        $("#divErrorPhoneNumber-0").removeClass('hidden');
+    } else {
+        $("#divErrorPhoneNumber-0").addClass('hidden');
+    }
+}
+
+function associateAccount(nroCuenta) {
+    var fields = {
+        accountNumber: nroCuenta,
+        action: "A",
+        phoneNumber: ""
+    }
+    var $form = $('<form>', {
+        action: appname + '/ost/associate/account',
+        method: 'post'
+    }).append(
+        $.map(fields, function (val, key) {
+            return $('<input>').attr({
+                type: "hidden",
+                name: key,
+                value: val
+            })
+        })
+    )
+    $form.appendTo('body').submit();
+}
+
+function loadAction(accountNumber, phoneNumber, action, currency) {
+    $("#phoneSelected").val(phoneNumber);
+    $("#accountSelected").val(accountNumber);
+    $("#currencySelected").val(currency);
+    $("#action").val(action);
+
+    if(action == 'D') {
+        $("#modalTitle").html("Cancelar Servicio");
+        $("#modalBody").html("¿Está seguro que desea cancelar el enlace entre su cuenta y su número de teléfono?");
+
+    } else if (action == 'L') {
+        $("#modalTitle").html("Bloqueo Temporal");
+        $("#modalBody").html("¿Está seguro que desea bloquear su cuenta asociada?");
+
+    } else if (action == 'U') {
+        $("#modalTitle").html("Desbloquear");
+        $("#modalBody").html("¿Está seguro que desea desbloquear su cuenta asociada?");
+
+    } else if (action == 'R') {
+        $("#modalTitle").html("Regenerar PIN");
+        $("#modalBody").html("¿Está seguro que desea regenerar su PIN?");
+
+    }
+
+    $('#modalAction').modal();
+}
+
+function registerAction(redirect) {
+    $('.loader').removeClass('hidden');
+    let phoneNumber = $("#phoneSelected").val();
+    let accountNumber = $("#accountSelected").val();
+    let currency = $("#currencySelected").val();
+    let action = $("#action").val();
+
+    $.ajax({
+        url: appname + '/ost/associate/update',
+        type: 'POST',
+        data: {
+            phoneNumber: phoneNumber,
+            accountNumber: accountNumber,
+            currency: currency,
+            action: action
+        },
+        success: function (result) {
+            if(result.hasError){
+                ajaxErrorHandler(result.errorBody, "", "", ID_GENERIC_ERROR);
+            }
+            else {
+                if(redirect == 'ACCOUNT') {
+                    getAccount(accountNumber);
+                } else {
+                    getOST();
+                }
+
+            }
+        },
+        error: function(request, status, error){
+            var errorData = request.responseJSON;
+            ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+        },
+        complete: function () {
+            $('.loader').addClass('hidden');
+        }
+    });
+
+}
+
+function modifyAssociation(accountNumber, phoneNumber, action) {
+    var fields = {
+        accountNumber: accountNumber,
+        action: action,
+        phoneNumber: phoneNumber
+    }
+    var $form = $('<form>', {
+        action: appname + '/ost/associate/account',
+        method: 'post'
+    }).append(
+        $.map(fields, function (val, key) {
+            return $('<input>').attr({
+                type: "hidden",
+                name: key,
+                value: val
+            })
+        })
+    )
+    $form.appendTo('body').submit();
+}
+
+function changePin(accountNumber, phoneNumber, currencyIso) {
+    var fields = {
+        accountNumber: accountNumber,
+        currencyIso: currencyIso,
+        phoneNumber: phoneNumber,
+        action: 'R'
+    }
+    var $form = $('<form>', {
+        action: appname + '/ost/associate/register',
+        method: 'post'
+    }).append(
+        $.map(fields, function (val, key) {
+            return $('<input>').attr({
+                type: "hidden",
+                name: key,
+                value: val
+            })
+        })
+    )
+    $form.appendTo('body').submit();
+}
+
+
+function nextStepSendPhoneNumber() {
+    let phoneNumber = $("#select-phone-number").val();
+    let accountNumber = $("#accountNumber").val();
+    let currencyIso = $("#currencyIso").val();
+    let action = $("#action").val();
+
+    console.log("Phone number", phoneNumber);
+    console.log("Account number", accountNumber);
+    console.log("Currency ISO", currencyIso);
+    console.log("Action", action);
+
+
+    var cardKey = $("#numberCard option:selected").val();
+
+    if(phoneNumber == '') {
+        //$("#divErrorPhoneNumber-0").removeClass('hidden');
+        var msg = 'Debe seleccionar un número de teléfono';
+
+        $("#fullfillError").hide();
+        $("#fullfillError").show();
+        $("#fullfillError").removeClass("hidden");
+        $("#msg").text(msg);
+        $("#container-main").removeClass("content-main");
+    } else {
+        //$("#divErrorPhoneNumber-0").addClass('hidden');
+        registerOST(accountNumber, phoneNumber, currencyIso, action);
+    }
+
+    var height2 = $("div.step-2-left").height();
+    height2 = height2 + 20;
+    $("div.step-2-right").css('height', height2);
+}
+
+function registerOST(accountNumber, phoneNumber, currencyIso, action) {
+
+    $(".loader").removeClass("hidden");
+    $("#buttonSelectPhone").attr("disabled","disabled");
+    $.ajax({
+        type: "POST",
+        url: appname + "/ost/associate/register",
+        data: {
+            accountNumber: accountNumber,
+            phoneNumber: phoneNumber,
+            currencyIso: currencyIso,
+            action: action
+        }
+    }).done(function (data) {
+        $("#step-1").addClass("hidden");
+        $(".loader").addClass("hidden");
+        $("#buttonSelectPhone").removeAttr("disabled");
+        $("#step-2").html(data);
+        $("#step-2").removeClass("hidden");
+
+        var height1 = $("div.step-31-left").height();
+        height1 = height1 + 20;
+        $("div.step-31-right").css('height', height1);
+
+        var height2 = $("div.step-32-left").height();
+        height2 = height2 + 20;
+        $("div.step-32-right").css('height', height2);
+
+        var height3 = $("div.step-3-left").height();
+        height3 = height3 + 20;
+        $("div.step-3-right").css('height', height3);
+
+    }).fail(function (request, status, error, response) {
+        $(".loader").addClass("hidden");
+        //goBackToStepOneOST();
+
+        $("#buttonSelectPhone").removeAttr("disabled");
+        console.log(request);
+        console.log(response);
+        console.log(error);
+        console.log(status);
+        $("#container-main").css('margin-top', '0px');
+        var errorData = request.responseJSON;
+        ajaxErrorHandler(errorData, status, error, "genericError");
+
+    })
+}
+
+function confirmOST(clave, token, keyAproval) {
+    $(".loader").removeClass("hidden");
+    $("#btnConfirmOperation").attr("disabled","disabled");
+    $.ajax({
+        type: "POST",
+        url: appname + "/ost/associate/confirm",
+        data: {
+            dinamicKey: clave,
+            tokenTransferAproved: token,
+            keyAproval: keyAproval
+        }
+    }).done(function (data) {
+        $(".loader").addClass("hidden");
+        $("#step-1").addClass("hidden");
+        $("#step-2").addClass("hidden");
+        $("#btnConfirmOperation").removeAttr("disabled");
+        window.location = appname + "/ost";
+
+    }).fail(function (request, status, error, response) {
+        $(".loader").addClass("hidden");
+        /*$("#btnConfirmOperation").removeAttr("disabled");
+        var errorData = request.responseJSON;
+        $("#container-main").css('margin-top', '0px');
+        ajaxErrorHandler(errorData, status, error, "genericError");*/
+        //console.log("Error");
+        //goBackToStepOneOST();
+        $("#step-1").removeClass("hidden");
+        $("#step-2").addClass("hidden");
+        $("#buttonSelectPhone").removeAttr("disabled");
+        console.log(request);
+        console.log(error);
+        console.log(status);
+        $("#container-main").css('margin-top', '0px');
+        var errorData = request.responseJSON;
+        console.log(errorData);
+        ajaxErrorHandler(errorData, status, error, "genericError");
+
+    })
+}
+
+function goBackToStepOneOST() {
+    window.location = appname + "/ost";
+}
+
+function goBackToStepTwoOST() {
+    $("#step-1").removeClass("hidden");
+    $("#step-2").html("");
+    $("#step-2").addClass("hidden");
+}
+
+function onModalAction() {
+    $("#container-box").css("display", "inline-block");
+}
+
+function offModalAction() {
+    $("#container-box").css("display", "none");
+}

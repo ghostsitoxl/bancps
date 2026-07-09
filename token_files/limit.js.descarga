@@ -1,0 +1,397 @@
+//limitStep-1.
+let currency, INCREMENT, MAX_LIMIT, TEXT;
+
+function initLimitModule() {
+    currency = $("#currency").val();
+    var increaseAmountUSD = $("#increaseAmountUSD").val();
+    var increaseAmountPYG = $("#increaseAmountPYG").val();
+    var maxAmountUSD = $("#maxAmountUSD").val();
+    var maxAmountPYG = $("#maxAmountPYG").val();
+
+    INCREMENT = (currency === 'Gs') ? parseInt(increaseAmountPYG) : parseInt(increaseAmountUSD);
+    MAX_LIMIT = (currency === 'Gs') ? parseInt(maxAmountPYG) : parseInt(maxAmountUSD);
+
+    var maxLimitFormatted = MAX_LIMIT.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    var increaseFormatted = INCREMENT.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    $("#maxLimitValue").text(maxLimitFormatted);
+    $("#increaseValue").text(increaseFormatted);
+
+    var limitMonths = document.getElementById('limitMonths').value.split(',').map(function(v) { return v.trim(); });
+    //Para cargar los radioButtons dinamicamente en cuentas individuales
+    if ($('#limits-table').length === 0) {
+        var container = document.getElementById('radioContainer');
+
+        limitMonths.forEach(function(value, idx) {
+            var labelText = (value === "0") ? "Hoy" : value + " meses";
+            var checked = (idx === 0) ? 'checked' : '';
+            var radioHtml = `
+                <div class="radio-custom">
+                    <label>
+                        <input type="radio" name="applyType" value="${value}" ${checked}>
+                        <span class="radio-label">${labelText}</span>
+                    </label>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', radioHtml);
+        });
+    }
+
+    //Para cargar las opciones de los selectores dinamicamente en cuentas multiples
+    if ($('#limits-table').length > 0) {
+        $('.personalise-select').each(function() {
+            var selectOption = $(this);
+            selectOption.empty();
+            selectOption.append('<option class="select-option" value="" disabled selected style="color: rgba(175,175,175,0.7)">Seleccione Duración</option>');
+            limitMonths.forEach(function(value) {
+                var labelText = (value === "0") ? "Por hoy" : value + " meses";
+                selectOption.append('<option class="select-option" value="' + value + '">' + labelText + '</option>');
+            });
+        });
+    }
+
+    $(document).ready(function () {
+        var height1 = $("div.step-1-left").height();
+        height1 = height1 + 20;
+        $("div.step-1-right").css('height', height1);
+
+        $('.number-format').each(function () {
+            const currencySymbol = $(this).data('currency');
+            formatAmount($(this), false);
+            $(this).val(currencySymbol + ' ' + $(this).val());
+        });
+
+        // Validacion de limite ingresado para una cuenta individual
+        if ($('#limits-table').length === 0) {
+            validateLimitValue();
+            $("#newLimit").on("input", function() {
+                validateLimitValue();
+                const cursorPos = this.selectionStart;
+                const currencySymbol = $(this).data('currency');
+                let value = $(this).val();
+                
+                if (!value.startsWith(currencySymbol + ' ') && !value.startsWith(currencySymbol)) {
+                    if (/\d/.test(value)) {
+                        value = value.replace(/[^\d.,]/g, '');
+                        $(this).val(currencySymbol + ' ' + value);
+                        this.setSelectionRange(cursorPos + currencySymbol.length + 1, cursorPos + currencySymbol.length + 1);
+                    }
+                }
+            });
+            
+            $("#newLimit").on("blur", function() {
+                const currencySymbol = $(this).data('currency');
+                let value = $(this).val();
+                
+                if (value) {
+                    value = value.replace(currencySymbol, '').trim();
+                    value = value.replace(/[^\d.,]/g, ''); 
+                    const $temp = $("<input>").val(value);
+                    formatAmount($temp, false);
+                    $(this).val(currencySymbol + ' ' + $temp.val());
+                }
+                
+                validateLimitValue();
+            });
+        }
+
+        $("#buttonLimitDetails").off("click").on("click", function () {
+            validateAndProceed();
+        });
+
+        function updateRowHighlighting() {
+            $('#limit-table tbody tr').removeClass('selected-row');
+
+            $('#limit-table tbody tr td input[type="checkbox"]:checked').each(function () {
+                $(this).closest('tr').addClass('selected-row');
+            });
+        }
+
+        updateRowHighlighting();
+
+        $(document).on('change', '#limit-table tbody tr td input[type="checkbox"]', function () {
+            const checkedBoxes = $('#limit-table tbody tr td input[type="checkbox"]:checked').length;
+            $('#buttonModifySelected').prop('disabled', checkedBoxes === 0);
+            updateRowHighlighting();
+        });
+
+        $('#limit-table tbody tr').on('click', function (e) {
+            if (!$(e.target).is('input, select')) {
+                const checkbox = $(this).find('.account-select');
+                checkbox.prop('checked', !checkbox.prop('checked')).trigger('change');
+            }
+        });
+
+        if ($('#limits-table').length > 0) {
+            $(document).off('change', 'input[name="currency"]');
+            $('input[name="currency"]').off('change');
+
+            $(document).on('change', 'input[name="currency"]', function () {
+                const selectedCurrency = $(this).val();
+                filterTableByCurrency(selectedCurrency);
+            });
+
+            setTimeout(function () {
+                const selectedCurrency = $('input[name="currency"]:checked').val();
+                filterTableByCurrency(selectedCurrency);
+            }, 500);
+        }
+    });
+}
+
+function validateLimitValue() {
+    // Solo validar en la vista de cuenta individual
+    if ($('#limits-table').length === 0) {
+        let currentValue = getCurrentLimit();
+        if (currentValue > MAX_LIMIT) {
+            $("#buttonLimitDetails").prop("disabled", true);
+        } else {
+            $("#buttonLimitDetails").prop("disabled", false);
+        }
+    }
+}
+
+function formatNumber(number) {
+    const currencySymbol = $("#newLimit").data('currency');
+
+    const $input = $("<input>").val(number);
+    formatAmount($input, false);
+
+    return currencySymbol + ' ' + $input.val();
+}
+
+function adjustLimit(isIncrease) {
+    let currentValue = getCurrentLimit();
+    const currencySymbol = $("#newLimit").data('currency');
+
+    if (isIncrease) {
+        //Para incremento
+        if (currentValue < MAX_LIMIT) {
+            let newValue = currentValue + INCREMENT;
+            const $temp = $("<input>").val(newValue);
+            formatAmount($temp, false);
+            $("#newLimit").val(currencySymbol + ' ' + $temp.val());
+        }
+    } else {
+        // Para decremento
+        if (currentValue > INCREMENT) {
+            let newValue = currentValue - INCREMENT;
+            const $temp = $("<input>").val(newValue);
+            formatAmount($temp, false);
+            $("#newLimit").val(currencySymbol + ' ' + $temp.val());
+        }
+    }
+
+    validateLimitValue();
+}
+
+function getCurrentLimit() {
+    const currencySymbol = $("#newLimit").data('currency');
+    let value = $("#newLimit").val();
+    value = value.replace(currencySymbol, '').trim();
+
+    return parseInt(value.replace(/[.,]/g, ''));
+}
+
+function validateAndProceed() {
+    // Verificar si estamos en la vista de múltiples cuentas o cuenta individual
+    if ($('#limits-table').length > 0) {
+        // Caso de múltiples cuentas
+        let listadoConfiguracion = [];
+        let summaryText = "Cuentas Seleccionadas:\n";
+
+        $('#limit-table tbody tr').each(function () {
+            const checkbox = $(this).find('input[type="checkbox"]');
+            if (checkbox.is(':checked')) {
+                const nroCuenta = checkbox.val();
+                const montoInput = $(this).find('.limit-amount');
+                const duracionSelect = $(this).find('.personalise-select');
+                const tipoCuenta = $(this).find('td:eq(1)').text().trim();
+                const moneda = $(this).find('td:eq(3)').text().trim();
+
+                // Obtener el monto y validar
+                let montoAumento = parseInt(montoInput.val().replace(/[.,]/g, ''));
+
+                let selected = duracionSelect.val();
+                let duracionTexto = selected === "0" ? 'Hoy' : selected + ' meses';
+                let montoFormateado = montoAumento.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+                summaryText += tipoCuenta + " / " + nroCuenta + " / Límite diario: " + moneda + ". " + montoFormateado + " / Aplicar cambio por: " + duracionTexto + "\n";
+
+                listadoConfiguracion.push({
+                    mesesDuracion: parseInt(selected),
+                    montoAumento: montoAumento,
+                    nroCuenta: nroCuenta
+                });
+            }
+        });
+
+        sendMultipleLimitsRequest(listadoConfiguracion, summaryText);
+    } else {
+        // Caso de cuenta única
+        let currentValue = getCurrentLimit();
+        let applyType = $('input[name="applyType"]:checked').val();
+        let applyTypeText = applyType == 0 ? 'Hoy' : applyType + ' meses';
+
+        let summaryText = 'Límite diario: ' + formatNumber(currentValue) + ' / Aplicar cambio por: ' + applyTypeText;
+
+        sendLimitRequest($("#accountNumber").val(), currentValue, applyType, $("#currencyCode").val(), summaryText);
+    }
+}
+
+function filterTableByCurrency(currency) {
+    $('#limit-table tbody tr').each(function () {
+        const rowCurrency = $(this).find('td:eq(3)').text().trim();
+
+        if (currency === 'todas') {
+            $(this).show();
+        } else if (currency === 'guaranies' && rowCurrency === 'Gs') {
+            $(this).show();
+        } else if (currency === 'dolares' && rowCurrency === '$') {
+            $(this).show();
+        } else {
+            $(this).hide();
+        }
+    });
+}
+
+function sendLimitRequest(nroCuenta, montoAumento, mesesDuracion, monedaCodigo, limitSummary) {
+    TEXT = limitSummary;
+    $(".loader").removeClass("hidden");
+    $("#buttonLimitDetails").attr("disabled", "disabled");
+    $.ajax({
+        type: "POST",
+        url: appname + "/limit/registrar",
+        data: {
+            accountNumber: nroCuenta,
+            amount: montoAumento,
+            mesesDuracion: mesesDuracion,
+            currencyCode: monedaCodigo
+        }
+    }).done(function (data) {
+        $(".loader").addClass("hidden");
+        $("#step-1").addClass("hidden");
+        $("#step-2").removeClass("hidden");
+        $("#step-2").html(data);
+        $("#limitSummary").text(limitSummary);
+
+        var height1 = $(".step-21-left").height();
+        $(".step-21-right").height(height1);
+        var height2 = $(".step-2-left").height();
+        $(".step-2-right").height(height2);
+    }).fail(function (request, status, error) {
+        $(".loader").addClass("hidden");
+        var errorData = request.responseJSON;
+        ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+    });
+}
+
+function sendMultipleLimitsRequest(listadoConfiguracion, limitSummary) {
+    TEXT = limitSummary.replace(/\n/g, '<br>');
+    $(".loader").removeClass("hidden");
+    $("#buttonModifySelected").attr("disabled", "disabled");
+    
+    $.ajax({
+        type: "POST",
+        url: appname + "/limit/registrar",
+        contentType: "application/json",
+        data: JSON.stringify({
+            listadoConfiguracion: listadoConfiguracion
+        })
+    }).done(function (data) {
+        $(".loader").addClass("hidden");
+        $("#step-1").addClass("hidden");
+        $("#step-2").removeClass("hidden");
+        $("#step-2").html(data);
+        $("#limitSummary").html(limitSummary.replace(/\n/g, '<br>'));
+
+        var height1 = $(".step-21-left").height();
+        $(".step-21-right").height(height1);
+        var height2 = $(".step-2-left").height();
+        $(".step-2-right").height(height2);
+    }).fail(function (request, status, error) {
+        $(".loader").addClass("hidden");
+        var errorData = request.responseJSON;
+        ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+    });
+}
+
+//limitStep-2
+function confirmLimit(token, clave, keyAproval) {
+    $("#step-2 #cardButtonTransactionalKey").attr("disabled", "disabled");
+    $(".loader").removeClass("hidden");
+
+    $.ajax({
+        type: "POST",
+        url: appname + "/limit/" + token + "/confirmar",
+        data: {
+            dinamicKey: clave,
+            tokenTransactionAprobation: token,
+            keyAproval: keyAproval,
+            limitSummary: TEXT
+        }
+    }).done(function(data) {
+        $("#step-1").addClass("hidden");
+        $("#step-2").addClass("hidden");
+
+        $(".loader").addClass("hidden");
+        $("#step-3").html(data);
+        $("#step-3").removeClass("hidden");
+        $("#step-2 #cardButtonTransactionalKey").removeAttr("disabled");
+
+        var height1 = $(".step-31-left").height();
+        $(".step-31-right").height(height1);
+        var height2 = $(".step-3-left").height();
+        $(".step-3-right").height(height2);
+    }).fail(function(request, status, error) {
+        $("#step-2 #cardButtonTransactionalKey").removeAttr("disabled");
+        $(".loader").addClass("hidden");
+        var errorData = request.responseJSON;
+        ajaxErrorHandler(errorData, status, error, "genericError");
+    });
+}
+
+function sendLimitEmail(email, subject, message, numberOperation,typeTransaction) {
+    $.ajax({
+        type: "POST",
+        url: appname + "/limit/notifyemail",
+        data: {
+            email: email,
+            asunto: subject,
+            mensaje: message,
+            numberOperation: numberOperation,
+            typeTransaction: typeTransaction
+        }
+    }).done(function (data) {
+        $("#emailDiv").addClass("hidden");
+    }).fail(function (request, status, error) {
+        var errorData = request.responseJSON;
+        ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+    })
+}
+
+function limitVisibility(obj) {
+	$(".loader").removeClass("hidden");
+    let status = obj.data('activo');
+    let targetId = obj.data('target');
+    let input = $('#' + targetId);
+	let account = obj.data('account');
+    
+    /*if (status == false) {
+        obj.data('activo', true);
+        obj.removeClass('glyphicon-eye-close').addClass('glyphicon-eye-open');
+        input.attr('type', 'text');
+    } else {
+        obj.data('activo', false);
+        obj.removeClass('glyphicon-eye-open').addClass('glyphicon-eye-close');
+        input.attr('type', 'password');
+    }*/
+	
+	$("#nroCuenta").html(account);
+	$("#denominacion").html(obj.data('denominacion'));
+	$("#modalidad").html(obj.data('modalidad'));
+	$("#moneda").html(obj.data('moneda'));
+	
+	$("#modalDetails").modal('show');
+	$(".loader").addClass("hidden");
+	
+}

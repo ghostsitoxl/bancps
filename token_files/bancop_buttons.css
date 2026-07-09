@@ -1,0 +1,77 @@
+.button-tooltip
+{
+	font-size: 15px !important;
+	height: 25px !important;
+}
+.button-tooltip-details
+{
+	font-size: 11px !important;
+	height: 18px !important;
+}
+.margin-button
+{
+	margin-left: 9px;
+}
+.button-tooltip:hover
+{
+	opacity: 0.7;
+}
+.button-show-more
+{
+	background-color: #429737;
+	color: white;
+	height: 30px;
+	border: 1px solid #429737;
+	text-align: right;
+	border-radius: 4px 4px 4px 4px;
+	font-family: segoeui-regular;
+	font-size: 17px;
+}
+.button-border-gray
+{
+	background-color: rgba(255,255,255,0);
+	border: 1px solid #999999;
+	color: #666666;
+}
+.button-color-green
+{
+	background-color: rgba(66, 151, 55, 1);
+}
+
+.button-color-orange
+{
+	background-color: #dc7415;
+}
+
+.button-cas-module{
+	background: #dd7612;
+	bottom: 20px;
+	display: inline-block;
+	font-size: 12px;
+	font-weight: bold;
+	line-height: 12px;
+	width: 150px;
+	padding-left: 10px;
+	padding-right: 10px;
+	padding-top: 9px;
+	padding-bottom: 9px;
+	text-align: center;
+	cursor: pointer;
+	color: #FFF;
+	margin-top: 0px;
+	margin-bottom: 0px;
+	font-family: "Trebuchet MS", "Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", Tahoma, sans-serif;
+	box-sizing: content-box;
+	border: 1px solid white;
+	border-radius: 4px;
+}
+
+.button-border-gray:hover
+{
+	border: 1px solid #429737;
+	color: #429737;
+}
+
+#btn-hasErrors,#btn-hasErrorsFile,#btn-hasModified{
+	font-size: 12px !important;
+}

@@ -1,0 +1,2297 @@
+var ACCOUNT_DESCRIPTION = "";
+var CURRENCY_ACCOUNT = "";
+var PAYMENT_DESCRIPTION = "";
+var TYPE_REM_DESCRIPTION = "";
+var TYPE_REM = "";
+var FILE_INPUT = "";
+var LOADING_METHOD = "";
+var TOTAL_AMOUNT = "0";
+var POS_BENEFICIARY_DATA = "";
+var TOTAL_PAY = "";
+var TOTAL_OFFICIALS = "";
+var POS_BENEFICIARY_SELECTED = "";
+var PR = "";
+var SALARY_INTERVAL = "";
+var APPROVE_INTERVAL = "";
+
+var SALARY_ORIGIN_BENEFICIARIES = new Map();
+var SALARY_MODIFY_BENEFICIARIES = new Map();
+var TOTAL_PROCESADOS = -1;
+var EMPLOYEES_SELECTED = [];
+var HAS_ERRORS = false;
+
+function goBackToStepOneSalary(){
+	 $("#step-1").removeClass("hidden");
+	 $("#step-1 .step-1-right").height($("#step-1 .step-1-left").height());
+	 $("#listFile").html("");
+	 $("#listFile").addClass("hidden");
+	 $("#step-2").addClass("hidden");
+	 $("#step-3").addClass("hidden");
+	 $("#step-4").addClass("hidden");
+}
+function goBackToStepTwoSalary(){
+	SALARY_ORIGIN_BENEFICIARIES = new Map();
+	SALARY_MODIFY_BENEFICIARIES = new Map();
+	$("#step-1").addClass("hidden");
+	$("#step-2").removeClass("hidden");
+	$("#step-2 .step-1-right").height($("#step-2 .step-1-left").height());
+	$("#listFile").html("");
+	$("#listFile").addClass("hidden");
+	$("#step-3").addClass("hidden");
+	$("#step-4").addClass("hidden");
+}
+function goBackToStepTreeSalary(){
+	$("#step-1").addClass("hidden");
+	$("#step-2").addClass("hidden");
+	$("#step-3").removeClass("hidden");
+	$("#step-4").addClass("hidden");
+}
+//funcion que obtiene las cuentas origen para el pago de salarios
+function getSalaryAccounts(){
+	location.href='/bancop/salary';
+}
+
+//funcion que recibe la cuenta seleccionada y la envia al controlador
+function getSalaryAccount(accountNumber, codEnte){
+	ACCOUNT_DESCRIPTION = $("#numberProduct option:selected").text();
+	CURRENCY_ACCOUNT = $("#numberProduct option:selected").attr("data-currency");
+	$.ajax({
+        type: "POST",
+        url: "/bancop/salary/account",
+        data: {
+            account : accountNumber,
+            codEnte: codEnte
+        }
+    }).done(function (data) {
+    	$("#step-1").addClass("hidden");
+        $("#step-2").removeClass("hidden");
+        $("#step-2").html("");
+        $("#step-2").html(data);
+        $("#numberAccount").text(ACCOUNT_DESCRIPTION);
+        var height = $("div .pos-2-left").height();
+        $("div .pos-2-right").height(height);
+        $("div .step-2-right").css("height","100%");
+    }).fail(function (request, status, error) {
+        var errorData = request.responseJSON;
+        ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+    })
+}
+
+//funcion que muestra los divs manual o archivo dependiendo de la eleccion
+function getSalaryPayment(){
+	if($("#loadingMethod").val()==="U" && $("#typeRemuneration").val()!=="S") {
+		var msg = "El último pago está habilitado solo para tipo de remuneración Salario";
+		showModalGenericError(msg);
+		return false;
+	}
+	
+	TYPE_REM = $("#typeRemuneration").val();
+	if(CURRENCY_ACCOUNT === "USD" && (TYPE_REM === "T" || TYPE_REM === "M")){
+		var msg = "El pago de Tarjeta Gourmet/Credito solo esta disponible en Gs.";
+		showModalGenericError(msg);
+		return false;
+	}
+	TYPE_REM_DESCRIPTION = $("#typeRemuneration option:selected").text();
+	PAYMENT_DESCRIPTION = "Tipo de Remuneración " + $("#typeRemuneration option:selected").text()+" — Carga "+ $("#loadingMethod option:selected").text();
+	
+	
+	$("#numberAccountStep-3").text(ACCOUNT_DESCRIPTION);
+	$("#paymentDescription").text(PAYMENT_DESCRIPTION);
+	$("#step-1").addClass("hidden");
+	$("#step-2").addClass("hidden");
+    $("#step-3").removeClass("hidden");
+    var height = $("div .pos-1-left").height();
+    $("div .pos-1-right").height(height);
+    $("div .step-1-right").css("height","100%");
+    
+    if($("#loadingMethod").val()==="A") {
+    	LOADING_METHOD = "A";
+    	$(".div-content-file").attr("onclick","loadFile()");
+    	$("#buttonSalaryPaymentStep-3").removeClass("hidden");
+    	$(".input-file").val("");
+    	$("#btn-hasErrors").addClass("hidden");
+		$("#btn-hasErrorsFile").addClass("hidden");
+
+    	var length = $(".content-file-manual").length;
+    	var i=0;
+    	var pos = length - 1;
+    	if(length > 1){
+    		while(pos !== i){
+    			$(".content-file-manual")[pos].remove();
+    			pos--;
+    		}
+    	}
+    	$("#div-file").removeClass("hidden");
+    	$("#div-manual").addClass("hidden");
+		$("#div-last").addClass("hidden");
+    	$("#moreButtonSalary").addClass("hidden");
+    	$(".total-officials").addClass("hidden");
+    	$(".div-total-amount").addClass("hidden");
+    	$(".content-file-manual").removeAttr("style");
+
+		var height2 = $(".pos-3-left").height();
+		$("div .pos-3-right").height(height2);
+		$("div .step-3-right").css("height","100%");
+    } else if($("#loadingMethod").val()==="M") {
+		EMPLOYEES_SELECTED = [];
+    	LOADING_METHOD = "M";
+    	var length = $(".content-file-manual").length;
+    	var i=0;
+    	var pos = length - 1;
+    	if(length > 1){
+    		while(pos !== i){
+    			$(".content-file-manual")[pos].remove();
+    			pos--;
+    		}
+    	}
+    	$("#div-manual").removeClass("hidden");
+    	if(TYPE_REM === "T" || TYPE_REM === "M"){
+    		$("#divSavedBeneficiaries").addClass("hidden");
+    	}else{
+    		$("#divSavedBeneficiaries").removeClass("hidden");
+    	}
+    	$("#moreButtonSalary").removeClass("hidden");
+    	$("#div-file").addClass("hidden");
+		$("#div-last").addClass("hidden");
+    	$(".total-officials").removeClass("hidden");
+    	$("#totalDestiny").text("1");
+    	$("#totalAmountSalaryPay").text("0");
+    	$(".div-total-amount").removeClass("hidden");
+    	showInputLabels();
+    	$("#divSendBeneficiaries").removeClass("hidden");
+    	$(".content-file-manual").css("background-color","#E6E6E6");
+    	$(".content-file-manual").css("margin-top","20px");
+
+		var height2 = $(".pos-3-left").height();
+		$("div .pos-3-right").height(height2);
+		$("div .step-3-right").css("height","100%");
+    } else {
+		showLastBeneficiaries();
+	}
+}
+
+function showLastBeneficiaries(){
+	$(".loader").removeClass("hidden");
+	$.ajax({
+		type: "POST",
+		url: appname+"/salary/payment/last"
+
+	}).done(function (data) {
+		if(data.hasError){
+			if(data.errorBody.useApiMessage)
+				showModalAdminError(data.errorBody.message);
+			else
+				showModalAdminError("Error obteniendo lista del Archivo");
+
+			redirectLoginExpired(data.errorBody.code);
+		}
+		else {
+			console.log("Recibido correctamente")
+			$(".loader").addClass("hidden");
+			$("#step-1").addClass("hidden");
+			$("#step-2").addClass("hidden");
+			$("#step-3").removeClass("hidden");
+			$("#step-3").empty();
+			$("#step-3").html(data);
+			console.log("Last type hidden = ", $("#lastTypeHidden").val())
+			$("#typeRemuneration").val($("#lastTypeHidden").val());
+			$("#typeRemuneration").trigger('change');
+			//originBeneficiaryData();
+			TYPE_REM_DESCRIPTION = $("#typeRemuneration option:selected").text();
+			TYPE_REM = $("#typeRemuneration").val();
+			PAYMENT_DESCRIPTION = "Tipo de Remuneración " + $("#typeRemuneration option:selected").text()+" — Carga "+ $("#loadingMethod option:selected").text();
+			$(".div-content-file").removeAttr("onclick");
+			$("#numberAccountStep-3").text(ACCOUNT_DESCRIPTION);
+			$("#paymentDescription").text(PAYMENT_DESCRIPTION);
+			$(".input-file").val(FILE_INPUT);
+			$("#buttonSalaryPaymentStep-3").addClass("hidden");
+			$("#div-file").removeClass("hidden");
+			$("#listFile").removeClass("hidden");
+			$("#moreButtonSalary").removeClass("hidden");
+			$(".total-officials").removeClass("hidden");
+			$(".div-total-amount").removeClass("hidden");
+			$("#totalDestiny").text($("#div-last #salary-fileToList tr").length);
+			var totalAmount = 0;
+			var tamAmount = $("#div-last .amount-fileToList").length;
+			var coin = $("#coinSalary").val();
+			for (i = 0; i < tamAmount; i++) {//se recorre los montos de la lista para mostrar en el total
+				var ubi = $(".amount-fileToList")[i].value;
+				ubi = ubi.replace(/\./g, '').replace(/,/g, '.');
+				if (isNaN(parseInt(ubi)) === false) { // va a dar true si es vacio el input
+					totalAmount = totalAmount + parseFloat(ubi);
+				}
+			}
+
+			var result = formatStringAmount(totalAmount.toString().replace(".", ","), coin);
+			var coinFormat = "";
+			if (coin === 'true') {//se formatea en base a la moneda del origen
+				coinFormat = "USD";
+			} else {
+				coinFormat = "Gs.";
+			}
+			result = coinFormat + " " + result;
+			$("#totalAmountSalaryPay").text(result);
+			$("#divSendBeneficiaries").removeClass("hidden");
+			var height2 = $(".pos-3-left").height();
+			$("div .pos-3-right").height(height2);
+			$("div .step-3-right").css("height", "100%");
+
+
+
+			LOADING_METHOD = "U";
+			$("#buttonSalaryPaymentStep-3").removeClass("hidden");
+			$(".input-file").val("");
+			$("#btn-hasErrors").addClass("hidden");
+			$("#btn-hasErrorsFile").addClass("hidden");
+
+			var length = $(".content-file-manual").length;
+			var i=0;
+			var pos = length - 1;
+			if(length > 1){
+				while(pos !== i){
+					$(".content-file-manual")[pos].remove();
+					pos--;
+				}
+			}
+			$("#div-file").addClass("hidden");
+			$("#div-manual").addClass("hidden");
+			$("#div-last").removeClass("hidden");
+			$(".last-benef").removeClass("hidden");
+			/*$("#moreButtonSalary").addClass("hidden");
+			$(".total-officials").addClass("hidden");
+			$(".div-total-amount").addClass("hidden");
+			$(".content-file-manual").removeAttr("style");
+
+			var height2 = $(".pos-3-left").height();
+			$("div .pos-3-right").height(height2);
+			$("div .step-3-right").css("height","100%");*/
+		}
+	}).fail(function (request, status, error) {
+		$(".loader").addClass("hidden");
+		var errorData = request.responseJSON;
+		ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+		$("#buttonSalaryPaymentStep-3Loading").addClass("hidden");
+		$("#buttonSalaryPaymentStep-3").removeClass("hidden");
+	}).complete(function () {
+		$(".loader").addClass("hidden");
+	});
+}
+
+//funcion que inserta el archivo en el input de tipo file
+function loadFile(){
+	$(".div-content-file").before(
+			function() {
+				if ( ! $(this).prev().hasClass('input-ghost') ) {
+					var element = $("<input type='file' id='salaryPaymentFile' class='input-ghost' accept='.csv, .txt, .xls' style='visibility:visible; height:0'>");
+					element.attr("name","salaryPaymentFile");
+					element.change(function(){
+
+						$(".input-file").val(element.val().split('\\').pop());
+					});
+					element.click();
+					return element;
+				}else{
+					$("#salaryPaymentFile").remove();
+					var element = $("<input type='file' id='salaryPaymentFile' class='input-ghost' accept='.csv, .txt, .xls' style='visibility:visible; height:0'>");
+					element.attr("name","salaryPaymentFile");
+					element.change(function(){
+
+						$(".input-file").val(element.val().split('\\').pop());
+
+					});
+					element.click();
+					return element;
+				}
+			}
+		);
+
+}
+//funcion que valida y envia el archivo en el formato adecuado
+function getValidFile(){
+
+	$("#buttonSalaryPaymentStep-3Loading").removeClass("hidden");
+	$("#buttonSalaryPaymentStep-3Loading").button().button('disable');
+	$("#buttonSalaryPaymentStep-3").addClass("hidden");
+	FILE_INPUT = $(".input-file").val();
+	if(FILE_INPUT !== ""){
+		var input = $("#salaryPaymentFile").val().split('.')[1].toLowerCase();
+		if(input !== "csv" && input !== "xls" && input !== "xlsx" && input !== "txt"){
+			$('html, body').animate({scrollTop: 0}, 800);
+			var msg = "Extensión Invalida";
+			 var error1 = '<div class="row body-error">' +
+		        '<input type="hidden" id="messageError" value="' + msg + '">' +
+		        '<div class="col-md-2 col-sm-1 hidden-xs"></div>' +
+		        '<div class="col-md-8 col-sm-10 col-xs-12 box-error-generic message-container">' +
+		        '<h1><span><i class="icon-message-title icon-alert"></i></span>Aviso</h1>' +
+		        '<p>' + msg + '</p>' +
+		        '<button type="button" class="close close-error" onclick="closeGenericError();"><span class="icon-close-white message-box"></span></button>' +
+		        '</div>' +
+		        '<div class="col-md-2 col-sm-1 hidden-xs"></div>' +
+		        '</div>';
+
+			 $("#genericError").hide();
+			 $("#genericError").html(error1);
+			 $("#genericError").show();
+			$("#container-main").removeClass("content-main");
+
+
+		}else{//si es el formato adecuado envia el archivo para que se guarde en la base de datos
+			 var data = new FormData();
+			 data.append("salaryPaymentFile", $('input[type=file]')[0].files[0]);
+			 data.append("typeRem",TYPE_REM);
+			 $(".loader").removeClass("hidden");
+			$.ajax({
+		            type: "POST",
+		            enctype: 'multipart/form-data',
+		            url: "/bancop/salary/payment/fileprocess",
+		            data: data,
+		            processData: false,
+		            contentType: false,
+		            cache: false,
+			 }).done(function (data) {
+				 $(".loader").addClass("hidden");
+                if(data.hasError){
+                    if(data.errorBody.useApiMessage)
+                        showModalAdminError(data.errorBody.message);
+                    else
+                        showModalAdminError("Error Procesando Archivo");
+
+                    redirectLoginExpired(data.errorBody.code);
+                }
+                else {
+                    if (data === "OK") { //Si se guardo correctamente se envia para procesar el archivo
+						$(".loader").removeClass("hidden");
+                        PR = setInterval(function () {
+                            checkProcess();
+                        }, 5000);
+
+                    }
+                }
+            }).fail(function (request, status, error) {
+                $(".loader").addClass("hidden");
+                var errorData = request.responseJSON;
+                ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+                clearInterval(PR);
+                $("#buttonSalaryPaymentStep-3Loading").addClass("hidden");
+                $("#buttonSalaryPaymentStep-3").removeClass("hidden");
+            })
+
+		}
+	}else{
+		var msg = "Debe Seleccionar un Archivo";
+		showModalGenericError(msg);
+	}
+}
+//funcion que controla el progreso de procesamiento del archivo
+function  checkProcess(){
+	$(".loader").removeClass("hidden");
+	$.ajax({
+        type: "POST",
+		dataType: 'json',
+        url: appname+"/salary/payment/check"
+
+	 }).done(function (data) {
+		 $(".loader").addClass("hidden");
+		 console.log(data)
+        if(data.hasError){
+            if(data.errorBody.useApiMessage)
+                showModalAdminError(data.errorBody.message);
+            else
+                showModalAdminError("Error Procesando Archivo");
+
+            redirectLoginExpired(data.errorBody.code);
+        }
+        else {
+
+            if (data.response.estado === 'COMPLETO') {//'COMPLETO' //TODO si ya proceso todo se llama a la funcion para obtener la lista en base al archivo
+				clearInterval(PR);
+				showFileToList();
+			}else if (data.response.estado === 'PROCESANDO') {
+            	showPartialListBeneficiaries(data.response.objetoProcesado);
+            }else if(data.response.estado === 'ERROR'){
+				clearInterval(PR);
+				let messageError = "Error Procesando Archivo";
+				if(data.response.mensajes[0] !== null && data.response.mensajes[0] !== undefined && data.response.mensajes[0] !== "")
+					messageError = data.response.mensajes[0];
+				showModalAdminError(messageError);
+            }
+        }
+	 }).fail(function (request, status, error) {
+		 $(".loader").addClass("hidden");
+	        var errorData = request.responseJSON;
+	        ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+	        clearInterval(PR);
+	        $("#buttonSalaryPaymentStep-3Loading").addClass("hidden");
+	    	$("#buttonSalaryPaymentStep-3").removeClass("hidden");
+	 });
+}
+
+function showPartialListBeneficiaries(beneficiaries){
+	if(beneficiaries != null && beneficiaries !== undefined){
+		$("#registerSalaryPayment").attr("disabled","disabled");
+		$(".loader").removeClass("hidden");
+		$.ajax({
+			type: "POST",
+			url: appname+"/salary/payment/partial-beneficiaries",
+			data : {
+				listBeneficiaries : JSON.stringify(beneficiaries)
+			}
+
+		}).done(function (data) {
+			if(data.hasError){
+				if(data.errorBody.useApiMessage)
+					showModalAdminError(data.errorBody.message);
+				else
+					showModalAdminError("Error obteniendo lista del Archivo");
+
+				redirectLoginExpired(data.errorBody.code);
+			}
+			else {
+				$("#step-1").addClass("hidden");
+				$("#step-2").addClass("hidden");
+				$("#step-3").removeClass("hidden");
+				$("#step-3").empty();
+				$("#step-3").html(data);
+				$("#registerSalaryPayment").attr("disabled","disabled");
+				$(".div-content-file").removeAttr("onclick");
+				$("#numberAccountStep-3").text(ACCOUNT_DESCRIPTION);
+				$("#paymentDescription").text(PAYMENT_DESCRIPTION);
+				$(".input-file").val(FILE_INPUT);
+				$("#buttonSalaryPaymentStep-3").addClass("hidden");
+				$("#div-file").removeClass("hidden");
+				$("#listFile").removeClass("hidden");
+				$("#moreButtonSalary").removeClass("hidden");
+				$(".total-officials").removeClass("hidden");
+				$(".div-total-amount").removeClass("hidden");
+				$("#totalDestiny").text($("#salary-fileToList tr").length);
+				var totalAmount = 0;
+				var tamAmount = $(".amount-fileToList").length;
+				var coin = $("#coinSalary").val();
+				for (i = 0; i < tamAmount; i++) {//se recorre los montos de la lista para mostrar en el total
+					var ubi = $(".amount-fileToList")[i].value;
+					ubi = ubi.replace(/\./g, '').replace(/,/g, '.');
+					if (isNaN(parseInt(ubi)) === false) { // va a dar true si es vacio el input
+						totalAmount = totalAmount + parseFloat(ubi);
+					}
+				}
+
+				var result = formatStringAmount(totalAmount.toString().replace(".", ","), coin);
+				var coinFormat = "";
+				if (coin === 'true') {//se formatea en base a la moneda del origen
+					coinFormat = "USD";
+				} else {
+					coinFormat = "Gs.";
+				}
+				result = coinFormat + " " + result;
+				$("#totalAmountSalaryPay").text(result);
+				$("#divSendBeneficiaries").removeClass("hidden");
+				var height2 = $(".pos-3-left").height();
+				$("div .pos-3-right").height(height2);
+				$("div .step-3-right").css("height", "100%");
+			}
+		}).fail(function (request, status, error) {
+			$(".loader").addClass("hidden");
+			var errorData = request.responseJSON;
+			ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+			$("#buttonSalaryPaymentStep-3Loading").addClass("hidden");
+			$("#buttonSalaryPaymentStep-3").removeClass("hidden");
+		});
+	}else{
+		$(".loader").addClass("hidden");
+		clearInterval(PR);
+		showModalAdminError("Error Procesando Archivo");
+	}
+
+
+
+}
+
+function  processAndCheck(){
+    $(".loader").removeClass("hidden");
+    $.ajax({
+        type: "POST",
+		dataType: 'json',
+        url: appname+"/salary/payment/process-check"
+
+    }).done(function (data) {
+        $(".loader").addClass("hidden");
+        if(data.hasError){
+            if(data.errorBody.useApiMessage)
+                showModalAdminError(data.errorBody.message);
+            else
+                showModalAdminError("Error Procesando Archivo");
+
+            redirectLoginExpired(data.errorBody.code);
+        }
+        else {
+            if (data === 'COMPLETO') {//'COMPLETO' //TODO si ya proceso todo se llama a la funcion para obtener la lista en base al archivo
+                clearInterval(PR);
+                showFileToList();
+            }else if(data === 'ERROR'){
+				clearInterval(PR);
+				showModalAdminError("Error Procesando Archivo");
+			}
+        }
+    }).fail(function (request, status, error) {
+        $(".loader").addClass("hidden");
+        var errorData = request.responseJSON;
+        ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+        clearInterval(PR);
+        $("#buttonSalaryPaymentStep-3Loading").addClass("hidden");
+        $("#buttonSalaryPaymentStep-3").removeClass("hidden");
+    });
+}
+
+
+
+//funcion que muestra la lista de beneficiarios en base al archivo procesado
+function  showFileToList(){
+	$(".loader").removeClass("hidden");
+	$.ajax({
+        type: "POST",
+        url: appname+"/salary/payment/file"
+
+	 }).done(function (data) {
+        if(data.hasError){
+            if(data.errorBody.useApiMessage)
+            	showModalAdminError(data.errorBody.message);
+            else
+                showModalAdminError("Error obteniendo lista del Archivo");
+
+            redirectLoginExpired(data.errorBody.code);
+        }
+        else {
+            $(".loader").addClass("hidden");
+            $("#step-1").addClass("hidden");
+            $("#step-2").addClass("hidden");
+            $("#step-3").removeClass("hidden");
+            $("#step-3").empty();
+            $("#step-3").html(data);
+			//originBeneficiaryData();
+            $(".div-content-file").removeAttr("onclick");
+            $("#numberAccountStep-3").text(ACCOUNT_DESCRIPTION);
+            $("#paymentDescription").text(PAYMENT_DESCRIPTION);
+            $(".input-file").val(FILE_INPUT);
+            $("#buttonSalaryPaymentStep-3").addClass("hidden");
+            $("#div-file").removeClass("hidden");
+            $("#listFile").removeClass("hidden");
+            $("#moreButtonSalary").removeClass("hidden");
+            $(".total-officials").removeClass("hidden");
+            $(".div-total-amount").removeClass("hidden");
+            $("#totalDestiny").text($("#div-file #salary-fileToList tr").length);
+            console.log("Cantidad de registros: ", $("#div-file #salary-fileToList tr").length);
+            var totalAmount = 0;
+            var tamAmount = $("#div-file .amount-fileToList").length;
+            var coin = $("#coinSalary").val();
+            for (i = 0; i < tamAmount; i++) {//se recorre los montos de la lista para mostrar en el total
+                var ubi = $(".amount-fileToList")[i].value;
+                ubi = ubi.replace(/\./g, '').replace(/,/g, '.');
+                if (isNaN(parseInt(ubi)) === false) { // va a dar true si es vacio el input
+                    totalAmount = totalAmount + parseFloat(ubi);
+                }
+            }
+
+            var result = formatStringAmount(totalAmount.toString().replace(".", ","), coin);
+            var coinFormat = "";
+            if (coin === 'true') {//se formatea en base a la moneda del origen
+                coinFormat = "USD";
+            } else {
+                coinFormat = "Gs.";
+            }
+            result = coinFormat + " " + result;
+            $("#totalAmountSalaryPay").text(result);
+            $("#divSendBeneficiaries").removeClass("hidden");
+            var height2 = $(".pos-3-left").height();
+            $("div .pos-3-right").height(height2);
+            $("div .step-3-right").css("height", "100%");
+        }
+	 }).fail(function (request, status, error) {
+		 $(".loader").addClass("hidden");
+	        var errorData = request.responseJSON;
+	        ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+	        $("#buttonSalaryPaymentStep-3Loading").addClass("hidden");
+	    	$("#buttonSalaryPaymentStep-3").removeClass("hidden");
+	 }).complete(function () {
+        $(".loader").addClass("hidden");
+    });
+}
+//funcion para agregar mas beneficiarios a la lista de beneficiarios
+function showMoreSalary(){
+	console.log("Method = ", LOADING_METHOD);
+	if(LOADING_METHOD === "A") {//por archivo se usa table
+		var length = $("#div-file #salary-fileToList tr").length;
+		var valId = $("#div-file #salary-fileToList tr:last").attr("class").split("-")[3];
+		var pos = (parseInt(valId) + 1);
+		var tds = $("#div-file #salary-fileToList tr:first td").length;
+		var coin = $("#coinSalary").val();
+		var tr = "<tr class=" + 'tr-file-pos-' + pos + ">";  //se crea la nueva fila
+		var imgDelete = $("#imgDelete").val();
+		for (i = 0; i < tds; i++) {
+			if (i == 3) { //se asignan las clases y eventos en base a la posicion
+				tr += "<td class = 'text-gray text-amount padding-bottom-15'><input class='input-style font-size-11' " +
+					"type='text' placeholder='Número Cuenta' onblur=" + 'getBeneficiaryFile(' + pos + ')' + "></td>";
+			} else if (i == 5) {
+				tr += "<td class = 'text-gray text-amount padding-bottom-15 tooltip'><input class='text-align-right font-size-11 amount-fileToList' " +
+					"type='text' placeholder='Monto' onblur='getTotalFileToList()' maxlength='18' onkeyup=" + 'formatAmount($(this),' + coin + ')' + " style='width: 100%'>" +
+					"<span class=\"tooltiptext\" style=\"background-color: transparent; bottom: 0%; left: 50%; width: 136%; padding: 0; font-size: 0.8rem\">Monto modificable</span></td>";
+			} else if (i == 6) {
+				tr += "<td class = 'cursor-pointer font-weight-bold' style='width: 7%;' onclick=" + 'deleteRowFileList(' + pos + ')' + "><img class='img-responsive icon-remove' style='cursor: pointer;' src="+imgDelete+"></td>";
+
+			} else {
+				tr += "<td class='text-gray text-align-left padding-bottom-5 text-capitalize'></td>";
+			}
+
+		}
+		tr += "</tr>";
+		$("#div-file #salary-fileToList").append(tr);//se agrega a la lista
+		$("#totalDestiny").text($("#div-file #salary-fileToList tr").length);//se actualiza el total de beneficiarios
+
+		var totalAmount = 0;
+		var tamAmount = $("#div-file .amount-fileToList").length;
+		for (i = 0; i < tamAmount; i++) {
+			var ubi = $("#div-file .amount-fileToList")[i].value;
+			ubi = ubi.replace(/\./g, '').replace(/,/g, '.');
+			if (isNaN(parseInt(ubi)) === false) { // va a dar true si es vacio el input
+				totalAmount = totalAmount + parseFloat(ubi);
+			}
+		}
+		var coin = $("#coinSalary").val();
+		var result = formatStringAmount(totalAmount.toString().replace(".", ","), coin);
+		var coinFormat = "";
+		if (coin == 'true') {
+			coinFormat = "USD";
+		} else {
+			coinFormat = "Gs.";
+		}
+		result = coinFormat + " " + result;
+		$("#totalAmountSalaryPay").text(result);//se actualiza el monto a pagar si fuese necesario
+
+	} else if(LOADING_METHOD === "U") {//por archivo se usa table
+		var length = $("#div-last #salary-fileToList tr").length;
+		var valId = $("#div-last #salary-fileToList tr:last").attr("class").split("-")[3];
+		var pos = (parseInt(valId)+1);
+		var tds=$("#div-last #salary-fileToList tr:first td").length;
+		var coin = $("#coinSalary").val();
+		var tr = "<tr class="+'tr-file-pos-'+pos+">";  //se crea la nueva fila
+		var imgDelete = $("#imgDelete").val();
+		for(i=0; i<tds; i++){
+			if(i == 3){ //se asignan las clases y eventos en base a la posicion
+				tr += "<td class = 'text-gray text-amount padding-bottom-15'><input class='input-style font-size-11' " +
+					"type='text' placeholder='Número Cuenta' onblur="+'getBeneficiaryLast('+pos+')'+"></td>";
+			}else if( i == 5){
+				tr += "<td class = 'text-gray text-amount padding-bottom-15 tooltip'><input class='text-align-right font-size-11 amount-fileToList' " +
+					"type='text' placeholder='Monto' onblur='getTotalLastToList()' maxlength='18' onkeyup="+'formatAmount($(this),'+coin+')'+" style='width: 100%'>" +
+					"<span class=\"tooltiptext\" style=\"background-color: transparent; bottom: 0%; left: 50%; width: 136%; padding: 0; font-size: 0.8rem\">Monto modificable</span></td>";
+			}else if(i == 6){
+				tr += "<td class = 'cursor-pointer font-weight-bold' style='width: 7%;' onclick="+'deleteRowLastList('+pos+')'+"><img class='img-responsive icon-remove' style='cursor: pointer;' src="+imgDelete+"></td>";
+
+			}else{
+				tr += "<td class='text-gray text-align-left padding-bottom-5 text-capitalize'></td>";
+			}
+
+		}
+		tr += "</tr>";
+		$("#div-last #salary-fileToList").append(tr);//se agrega a la lista
+		$("#totalDestiny").text($("#div-last #salary-fileToList tr").length);//se actualiza el total de beneficiarios
+
+		var totalAmount = 0;
+		var tamAmount = $("#div-last .amount-fileToList").length;
+		for(i=0; i<tamAmount;i++){
+			var ubi = $("#div-last .amount-fileToList")[i].value;
+			ubi = ubi.replace(/\./g, '').replace(/,/g, '.');
+			if(isNaN(parseInt(ubi)) === false){ // va a dar true si es vacio el input
+				totalAmount = totalAmount + parseFloat(ubi);
+			}
+		}
+		var coin = $("#coinSalary").val();
+		var result = formatStringAmount(totalAmount.toString().replace(".",","),coin);
+		var coinFormat = "";
+		if(coin == 'true'){
+			coinFormat = "USD";
+		}else{
+			coinFormat = "Gs.";
+		}
+		result = coinFormat +" "+result;
+		$("#totalAmountSalaryPay").text(result);//se actualiza el monto a pagar si fuese necesario
+
+	}else{//manual se usa sucesion de divs con una clase en comun
+		$(".content-file-manual").last().clone().insertBefore("#moreButtonSalary");//el nuevo div se inserta encima boton para agregar nuevos beneficiarios
+		var tam = $(".content-file-manual").length;
+		for(i=0;i<tam;i++){//se agrega todas las propiedades y se resetea todas las posiciones del div
+			$(".content-file-manual:eq("+i+") #div-manual input:eq(0)").attr("onclick","deleteDivManual("+i+")");
+			$(".content-file-manual:eq("+i+") #div-manual div:eq(0)").attr("id","div-beneficiary-"+i);
+			$(".content-file-manual:eq("+i+") #div-manual div #accountNumberBeneficiary").attr("onblur","getBeneficiaryData("+i+")");
+			$(".content-file-manual:eq("+i+") #div-manual div #divSavedBeneficiaries").attr("onclick","savedBeneficiaries("+i+")");
+			$(".content-file-manual:eq("+i+") #div-manual div #mountBeneficiary").attr("onblur","getTotalAmountSalary("+i+")");
+		}
+		var length = $(".content-file-manual").length-1;//se resta uno porque se necesita la posicion del nuevo div
+		var idPos = $(".content-file-manual:eq("+length+") #div-manual #div-beneficiary-"+length).attr("id");
+		$("#"+idPos+" div input").each(function(){ //limpia todos los campos del nuevo div copiado
+			$(this).val("");
+		});
+
+
+		$("#"+idPos+" .div-account-number-salary div").removeClass("div-error-background-orange"); //por si un div anterior tuvo errores se limpia la copia
+		$("#"+idPos+" .div-account-number-salary span").text("");
+		$("#"+idPos+" .label-accountNumberBeneficiary").removeAttr("style");
+		$("#"+idPos+" .accountNumberBeneficiary").removeAttr("style");
+
+		$("#"+idPos+" .div-mount-number-salary").removeClass("div-error-background-orange")
+		$("#"+idPos+" .div-mount-number-salary span").text("");
+		$("#"+idPos+" .label-mountNumberBeneficiary").removeAttr("style");
+		$("#"+idPos+" .mountBeneficiary").removeAttr("style");
+
+		$("#totalDestiny").text($(".content-file-manual").length);
+	}
+	var height2 = $(".pos-3-left").height();
+	 $("div .pos-3-right").height(height2);
+	 $("div .step-3-right").css("height","100%");
+}
+//funcion que permite obtener datos del beneficiario en base al numero de cuenta
+function getBeneficiaryData(pos){
+	var numberAccount = $("#div-beneficiary-"+pos+" #accountNumberBeneficiary").val();
+	POS_BENEFICIARY_DATA = pos;
+	$.ajax({
+		dataType: 'json',
+        type: "POST",
+        url: appname + "/salary/getbeneficiary",
+        data:{
+        	numberAccount : numberAccount.trim(),
+        	typeRem : TYPE_REM
+        }
+
+    }).done(function (data) {
+    	if(data.errorNumberAccount === ""){//si no hubo ningun error al traer los datos
+    		var nameBeneficiary = data.nameBeneficiary.toLowerCase();
+    		$("#div-beneficiary-"+POS_BENEFICIARY_DATA+" #nameBeneficiary").val(nameBeneficiary.capitalize());
+        	$("#div-beneficiary-"+POS_BENEFICIARY_DATA+" #typeAccount").val(data.typeAccount);
+
+        	$("#div-beneficiary-"+POS_BENEFICIARY_DATA+" .div-account-number-salary div").removeClass("div-error-background-orange"); //por si hubo un error anteriormente se limpia
+    		$("#div-beneficiary-"+POS_BENEFICIARY_DATA+" .div-account-number-salary span").addClass("hidden");
+    		$("#div-beneficiary-"+POS_BENEFICIARY_DATA+" .label-accountNumberBeneficiary").removeAttr("style");
+    		$("#div-beneficiary-"+POS_BENEFICIARY_DATA+" .accountNumberBeneficiary").removeAttr("style");
+
+    	}else{ //si hubo error se setea los estilos para marcar el error
+    		$("#div-beneficiary-"+POS_BENEFICIARY_DATA+" .div-account-number-salary div").addClass("div-error-background-orange");
+    		$("#div-beneficiary-"+POS_BENEFICIARY_DATA+" .div-account-number-salary span").text(data.errorNumberAccount);
+			$("#div-beneficiary-"+POS_BENEFICIARY_DATA+" .div-account-number-salary span").removeClass("hidden");
+    		$("#div-beneficiary-"+POS_BENEFICIARY_DATA+" .label-accountNumberBeneficiary").attr("style","color : white !important;");
+    		$("#div-beneficiary-"+POS_BENEFICIARY_DATA+" .accountNumberBeneficiary").attr("style","color : white !important;");
+
+    	}
+
+
+    });
+}
+//para borrar el div seleccionado
+function deleteDivManual(pos, employee) {
+    if(EMPLOYEES_SELECTED != null && EMPLOYEES_SELECTED != undefined & EMPLOYEES_SELECTED != "") {
+        if(employee != null && employee != undefined & employee != "") {
+            EMPLOYEES_SELECTED = jQuery.grep(EMPLOYEES_SELECTED, function(value) {
+                return value.accountNumberBeneficiary != employee;
+            });
+        }
+    }
+    console.log(EMPLOYEES_SELECTED);
+    var aux = parseInt(pos);
+    var length = $(".content-file-manual").length;
+    if (length > 1) {
+        $(".content-file-manual")[aux].remove();
+        getTotalAmountSalary(pos);
+        var height2 = $(".pos-3-left").height();
+        $("div .pos-3-right").height(height2);
+        $("div .step-3-right").css("height", "100%");
+    }
+}
+
+//para borrar una de las filas de la tabla
+function deleteRowFileList(pos){
+	var aux = $("#div-file #listFile table tbody tr").length;
+	if(aux > 1){
+		$.ajax({
+	        type: "POST",
+	        url: appname + "/salary/delete/beneficiary",
+	        data:{
+	        	position: pos,
+				type_record: 'FILE'
+	        }
+	    }).done(function (data) {
+	    	let idMap = "tr-file-pos-"+pos
+	    	$("."+idMap).remove();
+	    	SALARY_ORIGIN_BENEFICIARIES.delete(idMap);
+	    	SALARY_MODIFY_BENEFICIARIES.delete(idMap);
+			showButtonsBeneficiariesError();
+			getTotalFileToList();
+			 var height2 = $(".pos-3-left").height();
+			 $("div .pos-3-right").height(height2);
+			 $("div .step-3-right").css("height","100%"); 
+	    });
+		
+	}
+}
+
+function deleteRowLastList(pos){
+	var aux = $("#div-last #listFile table tbody tr").length;
+	if(aux > 1){
+		$.ajax({
+			type: "POST",
+			url: appname + "/salary/delete/beneficiary",
+			data:{
+				position: pos,
+				type_record: 'LAST'
+			}
+		}).done(function (data) {
+			let idMap = "tr-file-pos-"+pos
+			$("."+idMap).remove();
+			SALARY_ORIGIN_BENEFICIARIES.delete(idMap);
+			SALARY_MODIFY_BENEFICIARIES.delete(idMap);
+			showButtonsBeneficiariesError();
+			getTotalLastToList();
+			var height2 = $(".pos-3-left").height();
+			$("div .pos-3-right").height(height2);
+			$("div .step-3-right").css("height","100%");
+		});
+
+	}
+}
+
+//funcion que muestra la lista de beneficiarios relacionados a la empresa dentro de un modal
+function savedBeneficiaries(pos) {
+	console.log("Posicion ", pos);
+    POS_BENEFICIARY_SELECTED = pos;
+    $("#tableList tr td input[type='checkbox']:checked").each(function () {
+        $(this).prop('checked',true);
+    });
+
+    var posCheck = $("input[name=radioSalaryBeneficiaries]:checked").val();
+
+    if(EMPLOYEES_SELECTED == null || EMPLOYEES_SELECTED == undefined) {
+        EMPLOYEES_SELECTED = [];
+    }
+
+    console.log("Employees selected: ", JSON.stringify(EMPLOYEES_SELECTED));
+
+    $.ajax({
+        type: "POST",
+        url: appname + "/salary/savedbeneficiaries",
+        data: {
+            listBeneficiariesSelected: JSON.stringify(EMPLOYEES_SELECTED)
+        }
+    }).done(function (data) {
+        $("#listSavedBeneficiaries").html(data);
+        $("#modalSavedBeneficiaries").modal('toggle');
+        var height = window.innerHeight - 168; //para adaptar el tamaño total del modal
+        $("#listSavedBeneficiaries").css("max-height",height+"px");
+
+    }).fail(function (request, status, error) {
+        var errorData = request.responseJSON;
+        $("#container-main").css('margin-top', '0px');
+        ajaxErrorHandler(errorData, status, error, "genericError");
+    })
+}
+//funcion que actualiza el total de beneficiarios y el total a pagar de la lista en base al archivo
+function getTotalFileToList(){
+	if(LOADING_METHOD === "U"){
+		$("#totalDestiny").text($("#div-last #salary-fileToList tr").length);
+		var totalAmount = 0;
+		var tamAmount = $("#div-last .amount-fileToList").length;
+		for(i=0; i<tamAmount;i++){
+			var ubi = $("#div-last .amount-fileToList")[i].value;
+			ubi = ubi.replace(/\./g, '').replace(/,/g, '.');deleteRowFileList
+			if(isNaN(parseInt(ubi)) === false){ // va a dar true si es vacio el input
+				totalAmount = totalAmount + parseFloat(ubi);
+			}
+		}
+		var coin = $("#coinSalary").val();
+		var result = formatStringAmount(totalAmount.toString().replace(".",","),coin);
+		var coinFormat = "";
+		if(coin == 'true'){
+			coinFormat = "USD";
+		}else{
+			coinFormat = "Gs.";
+		}
+		result = coinFormat +" "+result;
+		$("#totalAmountSalaryPay").text(result);
+	} else {
+		$("#totalDestiny").text($("#div-file #salary-fileToList tr").length);
+		var totalAmount = 0;
+		var tamAmount = $("#div-file .amount-fileToList").length;
+		for(i=0; i<tamAmount;i++){
+			var ubi = $("#div-file .amount-fileToList")[i].value;
+			ubi = ubi.replace(/\./g, '').replace(/,/g, '.');deleteRowFileList
+			if(isNaN(parseInt(ubi)) === false){ // va a dar true si es vacio el input
+				totalAmount = totalAmount + parseFloat(ubi);
+			}
+		}
+		var coin = $("#coinSalary").val();
+		var result = formatStringAmount(totalAmount.toString().replace(".",","),coin);
+		var coinFormat = "";
+		if(coin == 'true'){
+			coinFormat = "USD";
+		}else{
+			coinFormat = "Gs.";
+		}
+		result = coinFormat +" "+result;
+		$("#totalAmountSalaryPay").text(result);
+	}
+}
+
+function getTotalLastToList() {
+	$("#totalDestiny").text($("#div-last #salary-fileToList tr").length);
+	var totalAmount = 0;
+	var tamAmount = $("#div-last .amount-fileToList").length;
+	for(i=0; i<tamAmount;i++){
+		var ubi = $("#div-last .amount-fileToList")[i].value;
+		ubi = ubi.replace(/\./g, '').replace(/,/g, '.');
+		if(isNaN(parseInt(ubi)) === false){ // va a dar true si es vacio el input
+			totalAmount = totalAmount + parseFloat(ubi);
+		}
+	}
+	var coin = $("#coinSalary").val();
+	var result = formatStringAmount(totalAmount.toString().replace(".",","),coin);
+	var coinFormat = "";
+	if(coin == 'true'){
+		coinFormat = "USD";
+	}else{
+		coinFormat = "Gs.";
+	}
+	result = coinFormat +" "+result;
+	$("#totalAmountSalaryPay").text(result);
+}
+
+//funcion que actualiza el total a pagar y el total de beneficiarios en pago salarios manual
+function getTotalAmountSalary(pos){
+	validateMount(pos);
+	var length = $(".mountBeneficiary").length; //recorremos todos los imputs con la clase
+	var r = 0;
+	for (i = 0; i < length; i++) {
+		var ubi = $(".mountBeneficiary")[i].value; //probar si se debe limpiar primero el valor con los puntos
+		ubi = ubi.replace(/\./g, '').replace(/,/g, '.');
+		if (isNaN(parseInt(ubi)) === false) { // va a dar true si es vacio el input
+			r = r + parseFloat(ubi);
+		}
+	}
+
+	var coin = $("#coinSalary").val();
+	var result = formatStringAmount(r.toString().replace(".", ","), coin);
+	var coinFormat = "";
+	if (coin == 'true') {
+		coinFormat = "USD";
+	} else {
+		coinFormat = "Gs.";
+	}
+	result = coinFormat + " " + result;
+	$("#totalAmountSalaryPay").text(result);
+	$("#totalDestiny").text(length);
+
+}
+
+//funcion que retorna un monto formateado en base a la moneda
+function formatStringAmount(elem, decimals){
+	var value = elem.toString();
+    value = value.replace(/\./g, '')
+    value = value.replace(/,/g, '.')
+    value = value.replace(/[^0-9\.]+/g, '')
+    var number = value.split('.')
+    var formattedString = number[0].replace(/\B(?=(\d{3})+\b)/g, ".")
+    if (decimals == 'true') {
+        if (value.indexOf('.') > 0 && value.indexOf('.') == value.length - 1) {
+            formattedString += ','
+        } else if (number[1] !== undefined) {
+            //formattedString += ',' + parseInt(number[1].substring(0, 2))
+            formattedString += ',' + number[1].substring(0, 2)
+        }
+    }
+	return formattedString;
+}
+
+//Funcion para validar si el campo actual esta vacio o no
+function validateMount(pos){
+	POS_BENEFICIARY_DATA = pos;
+	var mount = $(".mountBeneficiary")[POS_BENEFICIARY_DATA].value;
+	if(!isNaN(parseInt(mount))){
+		$("#div-beneficiary-"+POS_BENEFICIARY_DATA+" .div-mount-number-salary").removeClass("div-error-background-orange"); //por si hubo un error anteriormente se limpia
+		$("#div-beneficiary-"+POS_BENEFICIARY_DATA+" .div-mount-number-salary span").addClass("hidden");
+		$("#div-beneficiary-"+POS_BENEFICIARY_DATA+" .label-mountNumberBeneficiary").removeAttr("style");
+		$("#div-beneficiary-"+POS_BENEFICIARY_DATA+" .mountBeneficiary").removeAttr("style");
+	}else{
+		//Se agrega el error si el monto esta vacio
+		$("#div-beneficiary-" + POS_BENEFICIARY_DATA + " .div-mount-number-salary").addClass("div-error-background-orange");
+		$("#div-beneficiary-" + POS_BENEFICIARY_DATA + " .div-mount-number-salary span").text("Monto inválido");
+		$("#div-beneficiary-" + POS_BENEFICIARY_DATA + " .div-mount-number-salary span").removeClass("hidden");
+		$("#div-beneficiary-" + POS_BENEFICIARY_DATA + " .label-mountNumberBeneficiary").attr("style", "color : white !important;");
+		$("#div-beneficiary-" + POS_BENEFICIARY_DATA + " .mountBeneficiary").attr("style", "color : white !important;");
+	}
+}
+
+//constructor para cargar la lista de beneficiarios
+function Beneficiary(nameBeneficiary,typeAccount,accountNumberBeneficiary,mountBeneficiary,codEnte,additionalInfo,typeMovement){
+	this.nameBeneficiary = nameBeneficiary;
+	this.typeAccount  = typeAccount;
+	this.accountNumberBeneficiary = accountNumberBeneficiary;
+	this.mountBeneficiary = mountBeneficiary;
+	this.codEnte = codEnte;
+	this.additionalInfo = additionalInfo;
+	this.typeMovement = typeMovement;
+}
+
+//funcion que envia la lista de beneficiarios en base al metodo de carga elegido
+function submitListBeneficiaries(){
+	var listBeneficiaries = [];
+	if(LOADING_METHOD === "M"){//metodo manual
+		var length = $(".content-file-manual").length;
+		var errorCant = 0;//estilo que se asigna a los divs si existe algun error
+		for (i = 0; i < length; i++) {
+			errorCant = $(".content-file-manual:eq("+i+") #div-manual .div-error-background-orange").length;
+		}
+
+
+		var count = 0;
+		if(errorCant === 0){ //si no hay ningun error realiza el envio de la lista
+			for (i = 0; i < length; i++) {
+				var nameBeneficiary = $(".nameBeneficiary")[i].value;
+				var typeAccount = $(".typeAccount")[i].value;
+				var accountNumberBeneficiary = $(".accountNumberBeneficiary")[i].value;
+				var mountBeneficiary = $(".mountBeneficiary")[i].value.replace(
+							/\./g, '').replace(/,/g, '.');
+				var beneficiary = new Beneficiary(nameBeneficiary, typeAccount,
+							accountNumberBeneficiary, mountBeneficiary,null,null,null);
+				if(beneficiary.mountBeneficiary !== "" && beneficiary.accountNumberBeneficiary !== ""){
+					listBeneficiaries.push(beneficiary);
+				}else{
+					count++;
+				}
+			}
+			var lengthBeneficiaries = listBeneficiaries.length;
+			if(count == 0){//si no hay campos vacios
+				$(".loader").removeClass("hidden");
+				$("#registerSalaryPayment").attr("disabled","disabled");
+				$.ajax({
+					type : "POST",
+					url : appname + "/salary/registerbeneficiaries",
+					data : {
+						listBeneficiaries : JSON.stringify(listBeneficiaries),
+						loadingMethod:LOADING_METHOD,
+						typeRem : TYPE_REM
+					}
+
+				}).done(function(data) {
+					$(".loader").removeClass("hidden");
+
+                    if(data.hasError){
+						data.errorBody = JSON.parse(data.errorBody);
+                        if(data.errorBody.useApiMessage)
+                            showModalAdminError(data.errorBody.message);
+                        else
+                            showModalAdminError("Error registrando la operación.");
+
+                        redirectLoginExpired(data.errorBody.code);
+                    }
+                    else {
+                    	let timerVal = lengthBeneficiaries >= 1000 ? 7000: 3000;
+                        /*hacer llamada para chequear el estado*/
+                        SALARY_INTERVAL = setInterval(function() {
+                            checkProcessRegisterSalary();
+                        }, timerVal);
+                    }
+
+
+				}).fail(function (request, status, error) {
+					$(".loader").addClass("hidden");
+					$("#registerSalaryPayment").removeAttr("disabled");
+			        var errorData = request.responseJSON;
+			        $("#container-main").css('margin-top', '0px');
+			        ajaxErrorHandler(errorData, status, error, "genericError");
+			    });
+			}else{ //si existen beneficiarios con campos vacios
+				var msg = "";
+				if(count == 1){
+					msg = "Favor verificar su grupo de beneficiarios a enviar. Encontramos "+count+" beneficiario con campos vacios";
+				}else{
+					msg = "Favor verificar su grupo de beneficiarios a enviar. Encontramos "+count+" beneficiarios con campos vacios";
+				}
+				showModalGenericError(msg);
+			}
+		}else{//si existe algun campo con error se muestra mensaje
+			var msg = "";
+			if(errorCant === 1){
+				msg = "Favor verificar su grupo de cuentas a enviar. Encontramos "+errorCant+" cuenta con error";
+			}else{
+				msg = "Favor verificar su grupo de cuentas a enviar. Encontramos "+errorCant+" cuentas con error";
+			}
+			showModalGenericError(msg);
+		}
+	
+	}else if(LOADING_METHOD === "A"){//metodo de carga Archivo
+		var errorCant = $("#div-file #listFile tbody .salarioCredito .div-error-background-orange").length; //estilo que se setea para denotar error en las filas
+		var length = $("#div-file #salary-fileToList tr").length;
+		var tds=$("#div-file salary-fileToList tr:first td").length;
+		var count = 0;
+		if(errorCant == 0){//si no existe error en las filas se envia la lista
+			var errorTypeMovement = false;
+			var errorTypeMovementPosition = 0;
+			for(i=0; i<length; i++){
+					let idMap = $("#div-file #salary-fileToList tr:eq("+i+")").attr("class");
+					let beneficiaryModified = null;
+					if(SALARY_ORIGIN_BENEFICIARIES.get(idMap) !== undefined && SALARY_MODIFY_BENEFICIARIES.get(idMap) !== undefined){
+						let beneficiaryOrigin = SALARY_ORIGIN_BENEFICIARIES.get(idMap);
+                        beneficiaryModified = beneficiaryOrigin;
+						/*beneficiaryModified = SALARY_MODIFY_BENEFICIARIES.get(idMap);
+						if(beneficiaryModified.nroCuenta !== "")
+							beneficiaryModified.nroCuenta = beneficiaryOrigin.nroCuenta;
+						if(beneficiaryModified.monto !== "")
+							beneficiaryModified.monto = beneficiaryOrigin.monto;
+						if(beneficiaryModified.beneficiario !== "")
+							beneficiaryModified.beneficiario = beneficiaryOrigin.beneficiario;*/
+					}
+
+					var nameBeneficiary = "";
+					var tdNameBeneficiary = $("#div-file #salary-fileToList tr:eq("+i+") td:eq(0)");
+					var typeAccount = $("#div-file #salary-fileToList tr:eq("+i+") td:eq(1)").text().trim();
+					var tdTypeMovement = $("#div-file #salary-fileToList tr:eq("+i+") td:eq(2)");
+					var tdNumberAccount = $("#div-file #salary-fileToList tr:eq("+i+") td:eq(3)");
+					var tdAmount = $("#div-file #salary-fileToList tr:eq("+i+") td:eq(5)");
+					var accountNumberBeneficiary = "";
+					var typeMovement = null;
+					var codEnte = tdNumberAccount.attr("codEnte");
+					var mountBeneficiary = tdAmount.find("input").val().replace(/\./g, '').replace(/,/g, '.');
+					if(tdNumberAccount.find("input").val() === undefined){
+						accountNumberBeneficiary = tdNumberAccount.text().trim();
+					}else{
+						accountNumberBeneficiary = tdNumberAccount.find("input").val();
+					}
+					if(tdTypeMovement.find("input").val() === undefined){
+						typeMovement = tdTypeMovement.text().trim().toUpperCase();
+					}else{
+						typeMovement = tdTypeMovement.find("input").val().toUpperCase();
+						if(typeMovement === "" || typeMovement.toUpperCase() !== "C"){
+							errorTypeMovement = true;
+							errorTypeMovementPosition = i;
+							break;
+						}
+
+					}
+					if(tdNameBeneficiary.find("input").val() === undefined)
+						nameBeneficiary = tdNameBeneficiary.text().trim();
+					else
+						nameBeneficiary = tdNameBeneficiary.find("input").val();
+					var beneficiary = new Beneficiary(nameBeneficiary, typeAccount,
+							accountNumberBeneficiary, mountBeneficiary,codEnte,beneficiaryModified,typeMovement);
+					
+					if(beneficiary.mountBeneficiary !== "" && beneficiary.accountNumberBeneficiary !== ""){
+						listBeneficiaries.push(beneficiary);
+					}else{
+						count++;
+					}	
+			}
+			if(errorTypeMovement){
+				errorTypeMovementPosition = errorTypeMovementPosition + 1;
+				showModalGenericError("Tipo de Movimiento incorrecto en la fila: "+errorTypeMovementPosition);
+			}else{
+				if(count == 0){//si no hay campos vacios
+					$(".loader").removeClass("hidden");
+					$("#registerSalaryPayment").attr("disabled","disabled");
+					$.ajax({
+						type : "POST",
+						url : appname + "/salary/registerbeneficiaries",
+						data : {
+							listBeneficiaries : JSON.stringify(listBeneficiaries),
+							loadingMethod:LOADING_METHOD,
+							typeRem : TYPE_REM
+						}
+
+					}).done(function(data) {
+						$(".loader").addClass("hidden");
+						if(data.hasError){
+							data.errorBody = JSON.parse(data.errorBody);
+							if(data.errorBody.useApiMessage)
+								showModalAdminError(data.errorBody.message);
+							else
+								showModalAdminError("Error registrando la operación.");
+
+							redirectLoginExpired(data.errorBody.code);
+						}
+						else {
+							/*hacer llamada para chequear el estado*/
+							SALARY_INTERVAL = setInterval(function() {
+								checkProcessRegisterSalary();
+							}, 3000);
+						}
+
+
+					}).fail(function (request, status, error) {
+						$(".loader").addClass("hidden");
+						$("#registerSalaryPayment").removeAttr("disabled");
+						var errorData = request.responseJSON;
+						$("#container-main").css('margin-top', '0px');
+						ajaxErrorHandler(errorData, status, error, "genericError");
+					});
+
+				}else{ //si existen beneficiarios con campos vacios
+					var msg = "";
+					if(count == 1){
+						msg = "Favor verificar su grupo de beneficiarios a enviar. Encontramos "+count+" beneficiario con campos vacios";
+					}else{
+						msg = "Favor verificar su grupo de beneficiarios a enviar. Encontramos "+count+" beneficiarios con campos vacios";
+					}
+					showModalGenericError(msg);
+				}
+			}
+		}else{ //mensaje en base a la cantidad de cuentas con error
+			var msg = "";
+			if(errorCant === 1){
+				msg = "Favor verificar su grupo de cuentas a enviar. Encontramos "+errorCant+" cuenta con error";
+			}else{
+				msg = "Favor verificar su grupo de cuentas a enviar. Encontramos "+errorCant+" cuentas con error";
+			}
+			
+			showModalGenericError(msg);
+		}
+	} else {
+		var errorCant = $("#div-last #listFile tbody .salarioCredito .div-error-background-orange").length; //estilo que se setea para denotar error en las filas
+		var length = $("#div-last #salary-fileToList tr").length;
+		var tds=$("#div-last salary-fileToList tr:first td").length;
+		var count = 0;
+		if(errorCant == 0){//si no existe error en las filas se envia la lista
+			var errorTypeMovement = false;
+			var errorTypeMovementPosition = 0;
+			for(i=0; i<length; i++){
+				let idMap = $("#div-last #salary-fileToList tr:eq("+i+")").attr("class");
+				let beneficiaryModified = null;
+				if(SALARY_ORIGIN_BENEFICIARIES.get(idMap) !== undefined && SALARY_MODIFY_BENEFICIARIES.get(idMap) !== undefined){
+					let beneficiaryOrigin = SALARY_ORIGIN_BENEFICIARIES.get(idMap);
+					beneficiaryModified = beneficiaryOrigin;
+					/*beneficiaryModified = SALARY_MODIFY_BENEFICIARIES.get(idMap);
+                    if(beneficiaryModified.nroCuenta !== "")
+                        beneficiaryModified.nroCuenta = beneficiaryOrigin.nroCuenta;
+                    if(beneficiaryModified.monto !== "")
+                        beneficiaryModified.monto = beneficiaryOrigin.monto;
+                    if(beneficiaryModified.beneficiario !== "")
+                        beneficiaryModified.beneficiario = beneficiaryOrigin.beneficiario;*/
+				}
+
+				var nameBeneficiary = "";
+				var tdNameBeneficiary = $("#div-last #salary-fileToList tr:eq("+i+") td:eq(0)");
+				var typeAccount = $("#div-last #salary-fileToList tr:eq("+i+") td:eq(1)").text().trim();
+				var tdTypeMovement = $("#div-last #salary-fileToList tr:eq("+i+") td:eq(2)");
+				var tdNumberAccount = $("#div-last #salary-fileToList tr:eq("+i+") td:eq(3)");
+				var tdAmount = $("#div-last #salary-fileToList tr:eq("+i+") td:eq(5)");
+				var accountNumberBeneficiary = "";
+				var typeMovement = null;
+				var codEnte = tdNumberAccount.attr("codEnte");
+				var mountBeneficiary = tdAmount.find("input").val().replace(/\./g, '').replace(/,/g, '.');
+				if(tdNumberAccount.find("input").val() === undefined){
+					accountNumberBeneficiary = tdNumberAccount.text().trim();
+				}else{
+					accountNumberBeneficiary = tdNumberAccount.find("input").val();
+				}
+				if(tdTypeMovement.find("input").val() === undefined){
+					typeMovement = tdTypeMovement.text().trim().toUpperCase();
+				}else{
+					typeMovement = tdTypeMovement.find("input").val().toUpperCase();
+					if(typeMovement === "" || typeMovement.toUpperCase() !== "C"){
+						errorTypeMovement = true;
+						errorTypeMovementPosition = i;
+						break;
+					}
+
+				}
+				if(tdNameBeneficiary.find("input").val() === undefined)
+					nameBeneficiary = tdNameBeneficiary.text().trim();
+				else
+					nameBeneficiary = tdNameBeneficiary.find("input").val();
+				var beneficiary = new Beneficiary(nameBeneficiary, typeAccount,
+					accountNumberBeneficiary, mountBeneficiary,codEnte,beneficiaryModified,typeMovement);
+
+				if(beneficiary.mountBeneficiary !== "" && beneficiary.accountNumberBeneficiary !== ""){
+					listBeneficiaries.push(beneficiary);
+				}else{
+					count++;
+				}
+			}
+			if(errorTypeMovement){
+				errorTypeMovementPosition = errorTypeMovementPosition + 1;
+				showModalGenericError("Tipo de Movimiento incorrecto en la fila: "+errorTypeMovementPosition);
+			}else{
+				if(count == 0){//si no hay campos vacios
+					$(".loader").removeClass("hidden");
+					$("#registerSalaryPayment").attr("disabled","disabled");
+					$.ajax({
+						type : "POST",
+						url : appname + "/salary/registerbeneficiaries",
+						data : {
+							listBeneficiaries : JSON.stringify(listBeneficiaries),
+							loadingMethod:LOADING_METHOD,
+							typeRem : TYPE_REM
+						}
+
+					}).done(function(data) {
+						$(".loader").addClass("hidden");
+						if(data.hasError){
+							data.errorBody = JSON.parse(data.errorBody);
+							if(data.errorBody.useApiMessage)
+								showModalAdminError(data.errorBody.message);
+							else
+								showModalAdminError("Error registrando la operación.");
+
+							redirectLoginExpired(data.errorBody.code);
+						}
+						else {
+							/*hacer llamada para chequear el estado*/
+							SALARY_INTERVAL = setInterval(function() {
+								checkProcessRegisterSalary();
+							}, 3000);
+						}
+
+
+					}).fail(function (request, status, error) {
+						$(".loader").addClass("hidden");
+						$("#registerSalaryPayment").removeAttr("disabled");
+						var errorData = request.responseJSON;
+						$("#container-main").css('margin-top', '0px');
+						ajaxErrorHandler(errorData, status, error, "genericError");
+					});
+
+				}else{ //si existen beneficiarios con campos vacios
+					var msg = "";
+					if(count == 1){
+						msg = "Favor verificar su grupo de beneficiarios a enviar. Encontramos "+count+" beneficiario con campos vacios";
+					}else{
+						msg = "Favor verificar su grupo de beneficiarios a enviar. Encontramos "+count+" beneficiarios con campos vacios";
+					}
+					showModalGenericError(msg);
+				}
+			}
+		}else{ //mensaje en base a la cantidad de cuentas con error
+			var msg = "";
+			if(errorCant === 1){
+				msg = "Favor verificar su grupo de cuentas a enviar. Encontramos "+errorCant+" cuenta con error";
+			}else{
+				msg = "Favor verificar su grupo de cuentas a enviar. Encontramos "+errorCant+" cuentas con error";
+			}
+
+			showModalGenericError(msg);
+		}
+	}
+}
+
+//funcion que controla el progreso del registro de la transaccion
+function  checkProcessRegisterSalary(){
+    $(".loader").removeClass("hidden");
+    $.ajax({
+        type: "GET",
+		dataType: 'json',
+        url: appname + "/salary/register/check"
+
+    }).done(function (data) {
+		$(".loader").addClass("hidden");
+        if(data.hasError){
+            clearInterval(SALARY_INTERVAL);
+            if(data.errorBody.useApiMessage)
+                showModalAdminError(data.errorBody.message);
+            else
+                showModalAdminError("Error en el procesamiento del pago");
+
+            redirectLoginExpired(data.errorBody.code);
+            $(".loader").addClass("hidden");
+
+        }
+        else {
+			$(".loader").addClass("hidden");
+			clearInterval(SALARY_INTERVAL);
+            if (data.response.estado == 'COMPLETO'){//si ya proceso se obtiene la transaccion y se muestra la pantalla de confirmacion
+				getTransactionApprovalRequest();
+			}else if(data.response.estado == 'ERROR'){
+            	let messageError = "Error Procesando el Pago";
+            	if(data.response.mensajes[0] !== null && data.response.mensajes[0] !== undefined && data.response.mensajes[0] !== "")
+					messageError = data.response.mensajes[0];
+				showModalAdminError(messageError);
+
+				
+				$("[id^='div-beneficiary-']").each(function () {
+                    let beneficiaryDivId = $(this).attr('id');
+                    let numberAccount = $("#" + beneficiaryDivId + " #accountNumberBeneficiary").val(); 
+                    console.log("Número de cuenta capturado: ", numberAccount);
+
+                    if (data.response.mensajes.some(mensaje => mensaje.includes("Monto a acreditar excede al permitido mensual disponible para la cuenta básica: " + numberAccount))) {
+                        $("#registerSalaryPayment").prop("disabled", false);
+                        let $mountBeneficiary = $("#" + beneficiaryDivId + " .mountBeneficiary");
+                        $("#" + beneficiaryDivId + " .div-mount-number-salary").addClass("div-error-background-orange").focus();
+                        $("#" + beneficiaryDivId + " .div-mount-number-salary span").text("Monto crédito cta básico inválido.");
+                        $("#" + beneficiaryDivId + " .div-mount-number-salary span").removeClass("hidden");
+                        $("#" + beneficiaryDivId + " .label-mountNumberBeneficiary").attr("style", "color : white !important;");
+                        $("#" + beneficiaryDivId + " .mountBeneficiary").attr("style", "color : white !important;");
+
+                        $mountBeneficiary.one('click', function () {
+                            $("#" + beneficiaryDivId + " .div-mount-number-salary").removeClass("div-error-background-orange"); // limpio si hubo un error anteriormente
+                            $("#" + beneficiaryDivId + " .div-mount-number-salary span").addClass("hidden");
+                            $("#" + beneficiaryDivId + " .label-mountNumberBeneficiary").removeAttr("style");
+                            $("#" + beneficiaryDivId + " .mountBeneficiary").removeAttr("style");
+                        });
+                    }
+                });
+			}else if(data.response.estado == 'PROCESANDO' || data.response.estado == 'GUARDADO'){
+				checkProcessRegisterSalary();
+			}
+
+
+        }
+    }).fail(function (request, status, error) {
+        $(".loader").addClass("hidden");
+        var errorData = request.responseJSON;
+        ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+        clearInterval(SALARY_INTERVAL);
+        $("#buttonSalaryPaymentStep-3Loading").addClass("hidden");
+        $("#buttonSalaryPaymentStep-3").removeClass("hidden");
+    });
+}
+
+function getTransactionApprovalRequest() {
+	TOTAL_PROCESADOS = -1
+	$(".loader").removeClass("hidden");
+	$("#registerSalaryPayment").attr("disabled","disabled");
+	$.ajax({
+		type : "POST",
+		dataType: 'json',
+		url : appname + "/salary/approval/request"
+	}).done(function(data) {
+		$(".loader").removeClass("hidden");
+		if(data.hasError){
+			data.errorBody = JSON.parse(data.errorBody);
+			if(data.errorBody.useApiMessage)
+				showModalAdminError(data.errorBody.message);
+			else
+				showModalAdminError("Error solicitando la aprobación");
+			redirectLoginExpired(data.errorBody.code);
+		}
+		else {
+			APPROVE_INTERVAL = setInterval(function() {
+				checkProcessApprovalRequest(data.response);
+			}, 5000);
+		}
+	}).fail(function (request, status, error) {
+		$(".loader").addClass("hidden");
+		$("#registerSalaryPayment").removeAttr("disabled");
+		var errorData = request.responseJSON;
+		$("#container-main").css('margin-top', '0px');
+		ajaxErrorHandler(errorData, status, error, "genericError");
+	});
+}
+
+function checkProcessApprovalRequest(nroLote) {
+	$(".loader").removeClass("hidden");
+	$.ajax({
+		type: "GET",
+		dataType: 'json',
+		url: appname + "/salary/approval/request/check",
+		data: {
+			loteToApprove : nroLote
+		}
+
+	}).done(function (data) {
+		if(data.hasError){
+			clearInterval(APPROVE_INTERVAL);
+			if(data.errorBody.useApiMessage)
+				showModalAdminError(data.errorBody.message);
+			else
+				showModalAdminError("Error en el procesamiento de la solicitud de aprobación");
+			redirectLoginExpired(data.errorBody.code);
+			$(".loader").addClass("hidden");
+		}
+		else {
+			$(".loader").addClass("hidden");
+			clearInterval(APPROVE_INTERVAL);
+			if(TOTAL_PROCESADOS == data.response.cantidadProcesados) {
+				if(data.response.cantidadProcesados == data.response.cantidadTotalTareas) {
+					TOTAL_PROCESADOS = -1;
+					getConfirmationViewSalary();
+				} else {
+					/** Las primeras transacciones van a retornar vacio porque ingresa como EXPIRADA */
+					if(data.response.cantidadProcesados == 0) {
+						checkProcessApprovalRequest(nroLote);
+					} else {
+						showModalAdminError("Error al intentar finalizar la solicitud de aprobación");
+						$(".loader").addClass("hidden");
+					}
+				}
+			} else {
+				TOTAL_PROCESADOS = data.response.cantidadProcesados;
+				if(data.response.estado == 'ERROR') {
+					let messageError = "Error Procesando la aprobación";
+					showModalAdminError(messageError);
+				} else {
+					checkProcessApprovalRequest(nroLote);
+				}
+			}
+		}
+	}).fail(function (request, status, error) {
+		$(".loader").addClass("hidden");
+		var errorData = request.responseJSON;
+		ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+		clearInterval(APPROVE_INTERVAL);
+		$("#buttonSalaryPaymentStep-3Loading").addClass("hidden");
+		$("#buttonSalaryPaymentStep-3").removeClass("hidden");
+	});
+
+}
+
+function getConfirmationViewSalary() {
+    $(".loader").removeClass("hidden");
+    $.ajax({
+        type: "POST",
+        url: appname + "/salary/confirmation",
+
+    }).done(function (data) {
+        $(".loader").addClass("hidden");
+        if(data.hasError){
+            if(data.errorBody.useApiMessage)
+                showModalAdminError(data.errorBody.message);
+            else
+                showModalAdminError("Error registrando la operación.");
+
+            redirectLoginExpired(data.errorBody.code);
+        }
+        else {
+            $(".loader").addClass("hidden");
+            $("#step-1").addClass("hidden");
+            $("#step-2").addClass("hidden");
+            $("#step-3").addClass("hidden");
+            $("#registerSalaryPayment").removeAttr("disabled");
+            $("#step-4").removeClass("hidden");
+            $("#step-4").html(data);
+            TOTAL_OFFICIALS = $("#totalOfficialsStep-4").text();
+            TOTAL_PAY = $("#totalSalaryPayStep-4").text();
+            $("#numberAccountStep-4").text(ACCOUNT_DESCRIPTION);
+            $("#step-4 #paymentDescription").text(PAYMENT_DESCRIPTION);
+            var height1 = $("#step-4 .step-4-3-left").height();
+            $("#step-4 .step-4-3-right").height(height1);
+            $("#step-4 .step-4-3-right .step-3-right").css("height","100%");
+            var height2 = $("#step-4 .pos-4-left").height();
+            $("#step-4 .pos-4-right").height(height2);
+            $("#step-4 .step-4-right").css("height","100%");
+        }
+
+
+
+    }).fail(function (errorData,status,error) {
+        $(".loader").addClass("hidden");
+        $("#registerSalaryPayment").removeAttr("disabled");
+        var dataError = errorData.responseJSON;
+        $("#container-main").css('margin-top', '0px');
+        ajaxErrorHandler(dataError, status, error, "genericError");
+    });
+}
+
+
+//funcion que confirma el pago de salarios
+function confirmSalary(){
+	var dinamicKey = $("#clave").val();
+	var keyAproval = $("#keyAproval").val();
+	var txToken = $("#tokenTransactionAprobation").val();
+	if(dinamicKey !== ""){
+		$(".loader").removeClass("hidden");
+		$("#confirmSalaryPayment").attr("disabled","disabled");
+		$.ajax({
+			type : "POST",
+			url : appname + "/salary/confirm",
+			data : {
+				dinamicKey : dinamicKey,
+				tokenTransactionAprobation : txToken,
+				keyAproval : keyAproval,
+				loadingMethod : LOADING_METHOD
+			}
+
+		}).done(function(data) {
+			$(".loader").addClass("hidden");
+			$("#step-1").addClass("hidden");
+			 $("#step-2").addClass("hidden");
+			 $("#step-3").addClass("hidden");
+			 $("#step-4").addClass("hidden");
+			 $("#confirmSalaryPayment").removeAttr("disabled");
+			 $("#step-5").removeClass("hidden");
+			 $("#step-5").html(data);
+
+			 $("#numberAccountStep-5").text(ACCOUNT_DESCRIPTION);
+			 $("#salaryPayStep-5").text(PAYMENT_DESCRIPTION);
+			 var msg = "";
+			 if(LOADING_METHOD === "M"){
+				 msg = "Pago de "+ TYPE_REM_DESCRIPTION+ " en formato Manual - Total de Funcionarios: " +TOTAL_OFFICIALS +
+				 " - Monto "+TOTAL_PAY.capitalize();
+			 }else{
+				 msg = "Pago de " + TYPE_REM_DESCRIPTION+ " por Archivo - Total de Funcionarios: "+TOTAL_OFFICIALS +
+				 " - Monto "+TOTAL_PAY.capitalize();
+			 }
+			 $("#salaryBeneficiariesStep-5").text(msg);
+			 var height = $("#step-5 .step-3-left").height()+20;
+			 $("#step-5 .step-3-left").height(height);
+			 $("#step-5 .step-3-right").height(height);
+		}).fail(function (request, status, error) {
+			$(".loader").addClass("hidden");
+			$("#confirmSalaryPayment").removeAttr("disabled");
+	        var errorData = request.responseJSON;
+	        $("#container-main").css('margin-top', '0px');
+	        ajaxErrorHandler(errorData, status, error, "genericError");
+	    });
+	}else{//si no introduce nada en el input
+		var msg = "Introduzca la Clave Transaccional";
+		showModalGenericError(msg);
+	}
+}
+//funcion que agrega el nuevo beneficiario en base al numero de cuenta
+function getBeneficiaryFile(pos){
+	var numberAccount = $("#div-file .tr-file-pos-"+pos+" td:eq(3) input").val();
+	if(numberAccount == "") return;
+	var rowSelector = $("#div-file .tr-file-pos-"+pos);
+	var listBeneficiaries = [];
+	var length = $("#div-last #salary-fileToList tr").length-1;
+	var amountAux =  $("#div-file .tr-file-pos-"+pos+" td:eq(5) input").val();
+	for(i=0; i<=length; i++){
+		var nameBeneficiary = $("#div-file #salary-fileToList tr:eq("+i+") td:eq(0)").text().trim();
+		var typeAccount = $("#div-file #salary-fileToList tr:eq("+i+") td:eq(1)").text().trim().toUpperCase();
+		var typeMovement = $("#div-file #salary-fileToList tr:eq("+i+") td:eq(2)").text().trim().toUpperCase();
+		var tdNumberAccount = $("#div-file #salary-fileToList tr:eq("+i+") td:eq(3)");
+		var tdAmount = $("#div-file #salary-fileToList tr:eq("+i+") td:eq(5)");
+		var accountNumberBeneficiary = "";
+		var codEnte = tdNumberAccount.attr("codEnte");
+		var mountBeneficiary = tdAmount.find("input").val().replace(/\./g, '').replace(/,/g, '.');
+		if(tdNumberAccount.find("input").val() === undefined){
+			accountNumberBeneficiary = tdNumberAccount.text().trim();
+		}else{
+			accountNumberBeneficiary = tdNumberAccount.find("input").val();
+		}
+		var beneficiary = new Beneficiary(nameBeneficiary, typeAccount,
+				accountNumberBeneficiary, mountBeneficiary,codEnte,null,typeMovement);
+		listBeneficiaries.push(beneficiary);
+	}	
+	$.ajax({
+        type: "POST",
+        url: appname + "/salary/check-beneficiary",
+        data:{
+        	numberAccount : numberAccount.trim(),
+        	position : pos,
+        	typeRem : TYPE_REM,
+			loadingMethod : 'F'
+        }
+    }).done(function (data) {
+    	rowSelector.html(data);
+		rowSelector.children()[5].children[0].value = amountAux;
+		var height2 = $(".pos-3-left").height();
+    	$("div .pos-3-right").height(height2);
+    	$("div .step-3-right").css("height","100%");
+		showButtonsBeneficiariesError();
+	});
+}
+
+function getBeneficiaryLast(pos){
+	var numberAccount = $("#div-last .tr-file-pos-"+pos+" td:eq(3) input").val();
+	if(numberAccount == "") return;
+	var rowSelector = $("#div-last .tr-file-pos-"+pos);
+	var listBeneficiaries = [];
+	var length = $("#div-last #salary-fileToList tr").length-1;
+	var amountAux =  $("#div-last .tr-file-pos-"+pos+" td:eq(5) input").val();
+	for(i=0; i<=length; i++){
+		var nameBeneficiary = $("#div-last #salary-fileToList tr:eq("+i+") td:eq(0)").text().trim();
+		var typeAccount = $("#div-last #salary-fileToList tr:eq("+i+") td:eq(1)").text().trim().toUpperCase();
+		var typeMovement = $("#div-last #salary-fileToList tr:eq("+i+") td:eq(2)").text().trim().toUpperCase();
+		var tdNumberAccount = $("#div-last #salary-fileToList tr:eq("+i+") td:eq(3)");
+		var tdAmount = $("#div-last #salary-fileToList tr:eq("+i+") td:eq(5)");
+		var accountNumberBeneficiary = "";
+		var codEnte = tdNumberAccount.attr("codEnte");
+		var mountBeneficiary = tdAmount.find("input").val().replace(/\./g, '').replace(/,/g, '.');
+		if(tdNumberAccount.find("input").val() === undefined){
+			accountNumberBeneficiary = tdNumberAccount.text().trim();
+		}else{
+			accountNumberBeneficiary = tdNumberAccount.find("input").val();
+		}
+		var beneficiary = new Beneficiary(nameBeneficiary, typeAccount,
+			accountNumberBeneficiary, mountBeneficiary,codEnte,null,typeMovement);
+		listBeneficiaries.push(beneficiary);
+	}
+	$.ajax({
+		type: "POST",
+		url: appname + "/salary/check-beneficiary",
+		data:{
+			numberAccount : numberAccount.trim(),
+			position : pos,
+			typeRem : TYPE_REM,
+			loadingMethod : 'U'
+		}
+	}).done(function (data) {
+		rowSelector.html(data);
+		rowSelector.children()[5].children[0].value = amountAux;
+		var height2 = $(".pos-3-left").height();
+		$("div .pos-3-right").height(height2);
+		$("div .step-3-right").css("height","100%");
+		showButtonsBeneficiariesError();
+	});
+}
+//funcion que filtra la lista de beneficiarios guardados en base a la denominacion y el tipo de cuenta
+/*function searchBeneficiariesModal(){
+	var denominationBeneficiary = $("#denominationBeneficiariesModal").val().toUpperCase();
+	var typeAccountBeneficiary = $("#typeAccountBeneficiariesModal option:selected").text().trim().toUpperCase(); //obtenemos el texto del option del seleccionado
+	var selectDefault = $("#typeAccountBeneficiariesModal").val();
+	var table = $("#listSavedBeneficiaries #tableList tbody tr");
+	var count = 0;
+		for(var i=0;i<table.length;i++){
+			var td1 = $(".tr-manual-pos-"+i+" td:eq(1)");
+			var td2 = $(".tr-manual-pos-"+i+" td:eq(2)");
+			var tr = $(".tr-manual-pos-"+i);
+			if(denominationBeneficiary !== "" && selectDefault === "N"){ //por si eligio solo el input
+				if(td1.html().toUpperCase().indexOf(denominationBeneficiary) > -1){
+					tr.css("display","");
+				}else{
+					tr.css("display","none");
+					count++;
+				}
+
+			}else if(denominationBeneficiary === "" && selectDefault !== "N"){ //solo el select
+				if(td2.html().toUpperCase().indexOf(typeAccountBeneficiary) > -1){
+					tr.css("display","");
+				}else{
+					tr.css("display","none");
+					count++;
+				}
+			}else if(denominationBeneficiary !== "" && selectDefault !== "N"){ //el input y el select
+				if(td1.html().toUpperCase().indexOf(denominationBeneficiary) > -1 &&
+						td2.html().toUpperCase().indexOf(typeAccountBeneficiary) > -1){
+					tr.css("display","");
+				}else{
+					tr.css("display","none");
+					count++;
+				}
+			}else{ //si no eligio nada se muestra
+				tr.css("display","");
+			}
+
+		}
+		if(count === table.length){
+			$("#tableAux").removeClass("hidden");
+			$("#tableList").addClass("hidden");
+		}else{
+			$("#tableAux").addClass("hidden");
+			$("#tableList").removeClass("hidden");
+		}
+
+}*/
+
+function searchBeneficiariesModal(){
+	var denominationBeneficiary = $("#denominationBeneficiariesModal").val().toUpperCase();
+	var nroCuentaBeneficiary = $("#nroCuentaBeneficiariesModal").val();
+	var table = $("#listSavedBeneficiaries #tableList tbody tr");
+	var count = 0;
+	console.log("Cantidad de filas ", table.length);
+	for(var i=0;i<table.length-1;i++){
+		var td1 = $(".tr-manual-pos-"+i+" td:eq(1)");
+		var td2 = $(".tr-manual-pos-"+i+" td:eq(3)");
+		var tr = $(".tr-manual-pos-"+i);
+		if(denominationBeneficiary !== "" && nroCuentaBeneficiary === "") {
+			console.log('Posicion ', i, ' -> ', td1);
+			if(td1.html().toUpperCase().indexOf(denominationBeneficiary) > -1){
+				tr.css("display","");
+			} else {
+				tr.css("display","none");
+				count++;
+			}
+		} else if(denominationBeneficiary === "" && nroCuentaBeneficiary !== ""){
+			if(td2.html().toUpperCase().indexOf(nroCuentaBeneficiary) > -1){
+				tr.css("display","");
+			}else{
+				tr.css("display","none");
+				count++;
+			}
+		} else if(denominationBeneficiary !== "" && nroCuentaBeneficiary !== "") {
+			if(td1.html().toUpperCase().indexOf(denominationBeneficiary) > -1 &&
+				td2.html().toUpperCase().indexOf(nroCuentaBeneficiary) > -1) {
+				tr.css("display","");
+			} else {
+				tr.css("display","none");
+				count++;
+			}
+		} else {
+			tr.css("display","");
+		}
+	}
+
+	if(count === table.length){
+		$("#tableAux").removeClass("hidden");
+		$("#tableList").addClass("hidden");
+	} else {
+		$("#tableAux").addClass("hidden");
+		$("#tableList").removeClass("hidden");
+	}
+}
+
+//funcion que inserta en el div seleccionado para cargar datos del beneficiario
+//function beneficiarySelected(){
+//	var pos = $("input[name=radioSalaryBeneficiaries]:checked").val();
+//	var nameBeneficiary = $(".tr-manual-pos-"+pos+" td:eq(1)").text();
+//	var typeAccount = $(".tr-manual-pos-"+pos+" td:eq(2)").text();
+//	var typeAccountVal = "";
+//	if(typeAccount === "Cuenta Corriente"){
+//		typeAccountVal = "CC"; //Se cambia por el valor del select
+//	}else{
+//		typeAccountVal = "AH";
+//	}
+//	var numberAccount = $(".tr-manual-pos-"+pos+" td:eq(3)").text();
+//        var listMonto = $("#mountBeneficiaryList").val();
+//        //var listMonto = $(".tr-manual-pos-"+pos+" td:eq(5)").val();
+//
+//        console.log("Monto de la lista: ", listMonto);
+//
+//	$("#div-beneficiary-"+POS_BENEFICIARY_SELECTED+" #nameBeneficiary").val(nameBeneficiary.capitalize());
+//	$("#div-beneficiary-"+POS_BENEFICIARY_SELECTED+" #typeAccount").val(typeAccountVal);
+//	$("#div-beneficiary-"+POS_BENEFICIARY_SELECTED+" #accountNumberBeneficiary").val(numberAccount);
+//        $("#div-beneficiary-"+POS_BENEFICIARY_SELECTED+" #mountBeneficiary").val(listMonto);
+//
+//	$("#div-beneficiary-"+POS_BENEFICIARY_SELECTED+" .div-account-number-salary div").removeClass("div-error-background-orange"); //por si hubo un error anteriormente se limpia
+//	$("#div-beneficiary-"+POS_BENEFICIARY_SELECTED+" .div-account-number-salary span").addClass("hidden");
+//	$("#div-beneficiary-"+POS_BENEFICIARY_SELECTED+" .label-accountNumberBeneficiary").removeAttr("style");
+//	$("#div-beneficiary-"+POS_BENEFICIARY_SELECTED+" .accountNumberBeneficiary").removeAttr("style");
+//
+//
+//
+//}
+
+function beneficiarySelected() {
+	initAddEmployee();
+
+}
+
+async function initAddEmployee() {
+	/** Verificar el estado por cada cuenta seleccionada */
+	await verifyAccount();
+}
+
+function verifyAccount() {
+	HAS_ERRORS = false;
+	let cantChecked = $("#tableList tr td input[type='checkbox']:checked").size();
+	$("#tableList tr td input[type='checkbox']:checked").each(function (index) {
+		row = $(this).closest('tr');
+		let accountNumber = row.find('td:eq(3)').text();
+		$("#td-error-"+accountNumber).removeClass("td-manual-employee-error");
+		$("#error-"+accountNumber).text("");
+		$.ajax({
+			type: "POST",
+			dataType: 'json',
+			url: appname + "/salary/getbeneficiary/account-status",
+			data:{
+				numberAccount : accountNumber.trim(),
+				typeRem : TYPE_REM
+			}
+		}).done(function (data) {
+			console.log("Finalizo proceso")
+			if(data.errorNumberAccount === ""){
+
+			} else { // si hubo error mostramos el mensaje y no permitirmos agregar el flujo
+				HAS_ERRORS = true;
+				$("#td-error-"+accountNumber).addClass("td-manual-employee-error");
+				$("#error-"+accountNumber).text("Error en la cuenta " + accountNumber + ". " + data.errorNumberAccount);
+			}
+			if(index+1 == cantChecked) {
+				proccessUpdateData();
+			}
+		});
+	});
+}
+
+function proccessUpdateData() {
+	EMPLOYEES_SELECTED = [];
+	var seleccion = [];
+
+	if(!HAS_ERRORS) {
+		$("#tableList tr td input[type='checkbox']:checked").each(function () {
+			row = $(this).closest('tr');
+			var beneficiary = new Beneficiary(row.find('td:eq(1)').text(), row.find('td:eq(2)').text(),
+				row.find('td:eq(3)').text(), row.find('input[type="number"]').val(), null, null, null);
+			EMPLOYEES_SELECTED.push(beneficiary);
+			seleccion.push({
+				nameBeneficiary: row.find('td:eq(1)').text(),
+				typeAccount: row.find('td:eq(2)').text(),
+				numberAccount: row.find('td:eq(3)').text(),
+				montoAccount: row.find('input[type="number"]').val()
+			});
+		});
+
+		if(seleccion.length === 1) {
+
+			beneficiarySelectedOne()
+
+		} else {
+
+			var element = $(".content-file-manual").last().clone();
+			$(".content-file-manual").remove();
+			for (var k = 0; k < seleccion.length; k++) {
+				if(k > 0) {
+					element = $(".content-file-manual").last().clone();
+				}
+				//$(".content-file-manual").last().empty()
+				element.insertBefore("#moreButtonSalary"); //el nuevo div se inserta encima boton para agregar nuevos beneficiarios
+				var tam = $(".content-file-manual").length;
+				for (var i = 0; i < tam; i++) {//se agrega todas las propiedades y se resetea todas las posiciones del div
+					$(".content-file-manual:eq(" + i + ") #div-manual input:eq(0)").attr("onclick", "deleteDivManual(" + i + ", '" + EMPLOYEES_SELECTED[i].accountNumberBeneficiary + "')");
+					$(".content-file-manual:eq(" + i + ") #div-manual div:eq(0)").attr("id", "div-beneficiary-" + i);
+					$(".content-file-manual:eq(" + i + ") #div-manual div #accountNumberBeneficiary").attr("onblur", "getBeneficiaryData(" + i + ")");
+					$(".content-file-manual:eq(" + i + ") #div-manual div #divSavedBeneficiaries").attr("onclick", "savedBeneficiaries(" + i + ")");
+
+				}
+				var length = $(".content-file-manual").length - 1; //se resta uno porque se necesita la posicion del nuevo div
+				var idPos = $(".content-file-manual:eq(" + length + ") #div-manual #div-beneficiary-" + length).attr("id");
+				$("#" + idPos + " div input").each(function () { //limpia todos los campos del nuevo div copiado
+					$(this).val("");
+				});
+				$("#" + idPos + " .div-account-number-salary div").removeClass("div-error-background-orange"); //por si un div anterior tuvo errores se limpia la copia
+				$("#" + idPos + " .div-account-number-salary span").text("");
+				$("#" + idPos + " .label-accountNumberBeneficiary").removeAttr("style");
+				$("#" + idPos + " .accountNumberBeneficiary").removeAttr("style");
+				$("#totalDestiny").text($(".content-file-manual").length);
+			}
+
+			var recorrido = tam - seleccion.length;
+			if (recorrido === 0) {
+
+				for (var j = 0; j < tam; j++) {
+					var nameBeneficiary = seleccion[j].nameBeneficiary;
+					var typeAccount = seleccion[j].typeAccount;
+					var typeAccountVal = "";
+					if (typeAccount === "Cuenta Corriente") {
+						typeAccountVal = "CC"; //Se cambia por el valor del select
+					} else {
+						typeAccountVal = "AH";
+					}
+					var numberAccount = seleccion[j].numberAccount;
+					var montoAccount = seleccion[j].montoAccount;
+
+					$("#div-beneficiary-" + j + " #nameBeneficiary").val(nameBeneficiary.capitalize());
+					$("#div-beneficiary-" + j + " #typeAccount").val(typeAccountVal);
+					$("#div-beneficiary-" + j + " #accountNumberBeneficiary").val(numberAccount);
+					$("#div-beneficiary-" + j + " #mountBeneficiary").val(montoAccount);
+
+					$("#div-beneficiary-" + j + " .div-account-number-salary div").removeClass("div-error-background-orange"); //por si hubo un error anteriormente se limpia
+					$("#div-beneficiary-" + j + " .div-account-number-salary span").addClass("hidden");
+					$("#div-beneficiary-" + j + " .label-accountNumberBeneficiary").removeAttr("style");
+					$("#div-beneficiary-" + j + " .accountNumberBeneficiary").removeAttr("style");
+					$("#div-beneficiary-" + j + " #mountBeneficiary").focus();
+					POS_BENEFICIARY_SELECTED = j + 1;
+				}
+
+			} else {
+				var recorrer = tam - seleccion.length;
+
+				for (var l = recorrer; l < tam; l++) {
+					var a = l-recorrer;
+					var nameBeneficiary = seleccion[a].nameBeneficiary;
+					var typeAccount = seleccion[a].typeAccount;
+					var typeAccountVal = "";
+					if (typeAccount === "Cuenta Corriente") {
+						typeAccountVal = "CC"; //Se cambia por el valor del select
+					} else {
+						typeAccountVal = "AH";
+					}
+					var numberAccount = seleccion[a].numberAccount;
+					var montoAccount = seleccion[a].montoAccount;
+
+					$("#div-beneficiary-" + POS_BENEFICIARY_SELECTED + " #typeAccount").val(typeAccountVal);
+					$("#div-beneficiary-" + POS_BENEFICIARY_SELECTED + " #accountNumberBeneficiary").val(numberAccount).focus();
+					$("#div-beneficiary-" + POS_BENEFICIARY_SELECTED + " #nameBeneficiary").val(nameBeneficiary.capitalize());
+					$("#div-beneficiary-" + POS_BENEFICIARY_SELECTED + " #mountBeneficiary").val(montoAccount);
+
+					$("#div-beneficiary-" + POS_BENEFICIARY_SELECTED + " .div-account-number-salary div").removeClass("div-error-background-orange"); //por si hubo un error anteriormente se limpia
+					$("#div-beneficiary-" + POS_BENEFICIARY_SELECTED + " .div-account-number-salary span").addClass("hidden");
+					$("#div-beneficiary-" + POS_BENEFICIARY_SELECTED + " .label-accountNumberBeneficiary").removeAttr("style");
+					$("#div-beneficiary-" + POS_BENEFICIARY_SELECTED + " .accountNumberBeneficiary").removeAttr("style");
+					$("#div-beneficiary-" + POS_BENEFICIARY_SELECTED + " #mountBeneficiary").focus();
+					POS_BENEFICIARY_SELECTED = l + 1;
+
+				}
+			}
+		}
+		$('#modalSavedBeneficiaries').modal('toggle');
+	}
+}
+
+//funcion que inserta en el div seleccionado para cargar datos del beneficiario en el caso de seleccionar un solo beneficiario
+function beneficiarySelectedOne(){
+	var pos = $("input[name=radioSalaryBeneficiaries]:checked").val();
+	var nameBeneficiary = $(".tr-manual-pos-"+pos+" td:eq(1)").text();
+	var typeAccount = $(".tr-manual-pos-"+pos+" td:eq(2)").text();
+	var typeAccountVal = "";
+	if(typeAccount === "Cuenta Corriente"){
+		typeAccountVal = "CC"; //Se cambia por el valor del select
+	}else{
+		typeAccountVal = "AH";
+	}
+	var numberAccount = $(".tr-manual-pos-"+pos+" td:eq(3)").text();
+	var listMonto = $('.tr-manual-pos-'+pos+' input[type="number"]').val();
+
+	//numberAccount: row.find('td:eq(3)').text(),
+	//montoAccount: row.find('input[type="number"]').val()
+
+    //var listMonto = $("#mountBeneficiaryList").val();
+
+	$("#div-beneficiary-"+POS_BENEFICIARY_SELECTED+" #nameBeneficiary").val(nameBeneficiary.capitalize());
+	$("#div-beneficiary-"+POS_BENEFICIARY_SELECTED+" #typeAccount").val(typeAccountVal);
+	$("#div-beneficiary-"+POS_BENEFICIARY_SELECTED+" #accountNumberBeneficiary").val(numberAccount);
+    $("#div-beneficiary-"+POS_BENEFICIARY_SELECTED+" #mountBeneficiary").val(listMonto);
+
+	$("#div-beneficiary-"+POS_BENEFICIARY_SELECTED+" .div-account-number-salary div").removeClass("div-error-background-orange"); //por si hubo un error anteriormente se limpia
+	$("#div-beneficiary-"+POS_BENEFICIARY_SELECTED+" .div-account-number-salary span").addClass("hidden");
+	$("#div-beneficiary-"+POS_BENEFICIARY_SELECTED+" .label-accountNumberBeneficiary").removeAttr("style");
+	$("#div-beneficiary-"+POS_BENEFICIARY_SELECTED+" .accountNumberBeneficiary").removeAttr("style");
+
+	getTotalAmountSalary(pos);
+
+}
+//funcion que envia notificacion por email
+function salarySendEmail(email, subject, message, numberOperation) {
+    $.ajax({
+        type: "POST",
+        url: appname + "/salary/notifyemail",
+        data: {
+            email: email,
+            subject: subject,
+            message: message,
+            numberOperation: numberOperation,
+        }
+    }).done(function (data) {
+        $("#emailDiv").addClass("hidden");
+    }).fail(function (request, status, error) {
+        var errorData = request.responseJSON;
+        ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+    })
+}
+//funcion que envia notificacion por sms
+function salarySendSms(number, numberOperation) {
+
+    $.ajax({
+        type: "POST",
+        url: appname + "/salary/notifysms",
+        data: {
+            numberPhone: number,
+            numberOperation: numberOperation,
+        }
+    }).done(function (data) {
+        $("#smsDiv").addClass("hidden");
+    }).fail(function (request, status, error) {
+        var errorData = request.responseJSON;
+        ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+    })
+
+}
+//funcion que permite descargar el reporte de pago de salarios en formato pdf
+function downloadSalaryPdf(numberOperation){
+	var params = 'numberOperation=' + numberOperation;
+    var req = new XMLHttpRequest();
+    req.open("POST", appname + "/salary/pdfsalary", true);
+    req.responseType = "blob";
+    req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    req.onload = function () {
+    	if(req.status === 200){
+    		 var blob = req.response;
+    	     var fileName = 'pago-salario' + '-' + numberOperation + '.pdf';
+    	     downloadAllReport(blob, fileName);
+
+    	}
+    	else
+            showModalGenericError("Error al generar el Comprobante");
+
+    };
+    req.send(params);
+}
+function deleteRowFileListBeneficiaries(pos){
+	var aux = $("#tableList tbody tr").length;
+	if(aux > 1){
+		$(".tr-manual-pos-"+pos).remove();
+	}
+}
+
+function showButtonsBeneficiariesError(){
+	let lengthError = $("#listFile table tbody .div-error-background-orange").length;
+	if(lengthError == 0){
+		$("#btn-hasErrors").addClass("hidden");
+		$("#btn-hasErrorsFile").addClass("hidden");
+		$('#salary-fileToList tr').each(function(){$(this).removeClass("hidden")});
+	}else{
+		$("#btn-hasErrors").removeClass("hidden");
+	}
+}
+function showSalaryBeneficiariesError(obj){
+
+	if(obj.hasClass("btn-danger")){
+		$('#salary-fileToList tr').each(function(){$(this).addClass("hidden")});
+		$("#listFile table tbody").find(".div-error-background-orange").each(function(){
+			$(this).parent().parent().removeClass("hidden");
+		});
+		obj.removeClass("btn-danger").addClass("btn-primary");
+		obj.text("Mostrar Todo");
+		$("#btn-hasErrorsFile").removeClass("hidden");
+	}else{
+		$('#salary-fileToList tr').each(function(){$(this).removeClass("hidden")});
+		obj.addClass("btn-danger").removeClass("btn-primary");
+		obj.text("Mostrar solo Errores");
+		$("#btn-hasErrorsFile").addClass("hidden");
+	}
+	var height2 = $(".pos-3-left").height();
+	$("div .pos-3-right").height(height2);
+	$("div .step-3-right").css("height", "100%");
+
+}
+
+function originBeneficiaryData(){
+	SALARY_ORIGIN_BENEFICIARIES = new Map();
+	SALARY_MODIFY_BENEFICIARIES = new Map();
+	var length = $("#salary-fileToList tr").length-1;
+	for(i=0; i<=length; i++){
+		var beneficiaryText = "";
+		var tdBeneficiary = $("#salary-fileToList tr:eq("+i+") td:eq(0)");
+		var tdNumberAccount = $("#salary-fileToList tr:eq("+i+") td:eq(3)");
+		var tdAmount = $("#salary-fileToList tr:eq("+i+") td:eq(5)");
+		var accountNumberBeneficiary = "";
+		var mountBeneficiary = tdAmount.find("input").val().replace(/\./g, '').replace(/,/g, '.');
+		if(tdNumberAccount.find("input").val() === undefined){
+			accountNumberBeneficiary = tdNumberAccount.text().trim();
+		}else{
+			accountNumberBeneficiary = tdNumberAccount.find("input").val();
+		}
+
+		if(tdBeneficiary.find("input").val() === undefined)
+			beneficiaryText = tdBeneficiary.text().trim();
+		else
+			beneficiaryText = tdBeneficiary.find("input").val();
+		var beneficiaryOrigin = new BeneficiaryModified(accountNumberBeneficiary, mountBeneficiary,beneficiaryText);
+		let idMap = "tr-file-pos-"+i;
+		SALARY_ORIGIN_BENEFICIARIES.set(idMap,beneficiaryOrigin);
+	}
+}
+
+function BeneficiaryModified(nroCuenta,monto,beneficiario){
+	this.beneficiario = beneficiario;
+	this.nroCuenta = nroCuenta;
+	this.monto = monto;
+}
+
+function modifiedSalaryBeneficiary(pos,type,obj){
+	let idMap = "tr-file-pos-"+pos;
+	let account = "";
+	let amount = "";
+	let beneficiary = "";
+	if(type === "account")
+		account = obj.val();
+	else if(type === "amount")
+		amount = obj.val();
+	else if(type === "beneficiary")
+		beneficiary = obj.val();
+	if(SALARY_MODIFY_BENEFICIARIES.get(idMap) !== undefined){
+		let beneficiaryModified = SALARY_MODIFY_BENEFICIARIES.get(idMap);
+		if(type === "account"){
+			account = obj.val();
+			amount = beneficiaryModified.monto;
+			beneficiary = beneficiaryModified.beneficiario;
+		}else if(type === "amount"){
+			amount = obj.val();
+			account = beneficiaryModified.nroCuenta;
+			beneficiary = beneficiaryModified.beneficiario;
+		}else if(type === "beneficiary"){
+			beneficiary = obj.val();
+			amount = beneficiaryModified.monto;
+			account = beneficiaryModified.nroCuenta;
+		}
+
+	}
+	let beneficiaryOrigin = new BeneficiaryModified(account, amount,beneficiary);
+	SALARY_MODIFY_BENEFICIARIES.set(idMap,beneficiaryOrigin);
+}
+
+function downloadFileSalaryError(){
+	var req = new XMLHttpRequest();
+	var params = "";
+	req.open("POST", appname + "/salary/beneficiaries/error", true);
+	req.responseType = "blob";
+	req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	req.onload = function () {
+		if(req.status === 200){
+			var blob = req.response;
+			var fileName = 'salario-beneficiarios-errores.pdf';
+			downloadAllReport(blob, fileName);
+		}else{
+			showModalGenericError("Error al generar el Comprobante");
+		}
+
+	};
+	req.send(params);
+}
+
+function verifyTransactionSalary(){
+	let totalAmount = $("#totalAmountSalaryPay").text().split(" ")[1];
+	totalAmount = totalAmount.trim().replace(/\./g, '').replace(/,/g, '.');
+	console.log("Method -> ", LOADING_METHOD);
+	if(LOADING_METHOD === "A") {
+		$(".loader").removeClass("hidden");
+		$.ajax({
+			type: "POST",
+			dataType: 'json',
+			url: appname + "/salary/validate-transaction",
+			data: {
+				totalPay: totalAmount
+			}
+
+		}).done(function (data) {
+			$(".loader").addClass("hidden");
+			if (data.hasError) {
+				if (data.errorBody.useApiMessage)
+					showModalAdminError(data.errorBody.message);
+				else
+					showModalAdminError("Error en la verificacion.");
+
+				redirectLoginExpired(data.errorBody.code);
+			} else {
+				$('#dgcAceptar').off("click");
+				$('#dgcRechazar').off("click");
+				if (data.response.estado === "ERROR") {
+					$(".loader").addClass("hidden");
+					$('.message').html(data.response.mensaje);
+					var dgcTiempo = 0;
+					var alVentana = $('.dgcVentana').height();
+					var alNav = $(window).height();
+					var supNav = $(window).scrollTop();
+					$('.dgcAlert').css('height', $(document).height());
+					$('.dgcVentana').css('top', ((alNav - alVentana) / 2 + supNav - 100) + 'px');
+					$('.dgcAlert').css('display', 'block');
+					$('.dgcAlert').animate({opacity: 1}, dgcTiempo);
+					$('.dgcMensaje .title-alert').text("Aviso");
+					$('#dgcAceptar').text("Continuar el proceso");
+					$('#dgcRechazar').text("Finalizar el proceso");
+					$('#dgcRechazar').removeClass("hidden");
+					$('#dgcAceptar').click(function (e) {
+						$('.dgcAlert').animate({opacity: 0}, dgcTiempo);
+						$('.dgcAlert').css('display', 'none');
+						submitListBeneficiaries();
+					});
+					$('.dgcCerrar').click(function (e) {
+						$('.dgcAlert').animate({opacity: 0}, dgcTiempo);
+						$('.dgcAlert').css('display', 'none');
+						$('.dgcMensaje .title-alert').text("Importante");
+						$('#dgcAceptar').text("Aceptar");
+						$('#dgcRechazar').addClass("hidden");
+						$('#dgcRechazar').text("Rechazar");
+					});
+					$('#dgcRechazar').click(function (e) {
+						$('.dgcCerrar').click();
+					});
+				} else {
+					submitListBeneficiaries();
+				}
+
+			}
+
+
+		}).fail(function (errorData, status, error) {
+			$(".loader").addClass("hidden");
+			var dataError = errorData.responseJSON;
+			$("#container-main").css('margin-top', '0px');
+			ajaxErrorHandler(dataError, status, error, "genericError");
+		});
+	} else {
+		submitListBeneficiaries();
+	}
+}
+

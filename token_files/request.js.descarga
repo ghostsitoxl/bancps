@@ -1,0 +1,320 @@
+function requestALoan(){
+	location.href = appname + "/loan/loan-request";
+}
+
+
+function registerLoanRequest(){
+	var band=loanFindClearInput();
+	if(band === "true"){
+		var loanDestiny = $("#loanDestiny option:selected").text();
+		var coinTypeLoan = $("#coinTypeLoan").val();
+		var amount = $("#loanAmount").val().replace(/\./g, '').replace(/,/g, '.');
+		var modality = $("#loanModality option:selected").text();
+		var codModality = $("#loanModality").val();
+		var contact = $("#loanMeans").val();
+		var obsDescription = $("#loanObs").val();
+		var loanTerm = $("#loanTerm").val();
+		$.ajax({
+			type: "POST",
+			url: appname + "/loan/loan-request/register",
+			data:{
+				loanDestiny: loanDestiny,
+				currencyLoan : coinTypeLoan,
+				amount : amount,
+				loanModality : modality,
+				contact : contact,
+				observation : obsDescription,
+				loanTerm : loanTerm,
+				codModality : codModality
+			}
+		}).done(function (data) {
+			$("#step-2").html(data);
+			$("#step-1").addClass("hidden");
+			$("#step-2").removeClass("hidden");
+		
+			
+			
+			if($("#loanObs").val()===""){
+				var obs = "Sin observaciones";
+			}else{
+				var obs = $("#loanObs").val();
+			}
+			productText = $("#loanDestiny option:selected").text() + " / " + 
+							$("#loanModality option:selected").text() + " / " + 
+							$("#loanAmount").val() + " / " + $("#coinTypeLoan option:selected").text()+" / " +
+							"Plazo: "+$("#loanTerm").val() +" / " + obs + " / " + 
+							$("#loanMeans option:selected").text();
+			$('#numberCuentaConfirm ').text(productText);
+			var height1 = $("div.step-41-left").height();
+			$("div.step-41-left").height(height1+15);
+			$("div.step-41-right").height(height1+15);
+		}).fail(function (request, status, error) {
+			var errorData = request.responseJSON;
+			var errorData = request.responseJSON;
+			ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+		})
+	}else{
+		var msg = 'Debe completar todos los campos';
+
+    	$("#fullfillError").hide();
+    	$("#fullfillError").show();
+    	$("#fullfillError").removeClass("hidden");
+    	$("#msg").text(msg);
+        $("#container-main").removeClass("content-main");
+	}
+}
+
+function confirmLoanRequest(){
+	$.ajax({
+	    type: "GET",
+	    url: appname + "/loan/loan-request/confirm",
+	   
+	    }).done(function (data) {
+	    	$("#nextButonConfirm").addClass("hidden");
+	    	$("#final-step").removeClass("hidden");
+	    	
+			var height1 = $("div.step-41-left").height();
+	    	height1 = height1;
+	    	$("div.step-41-right").height(height1);
+
+			$('#numberCuentaConfirm ').text(productText);
+			
+	    }).fail(function (request, status, error) {
+	        var errorData = request.responseJSON;
+	        var errorData = request.responseJSON;
+	        ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+	    })
+}
+
+function loanFindClearInput(){
+	var band="true";
+	if($("#loanDestiny").val()==="0"){
+		band="false";
+		return band;
+	}
+	if($("#coinTypeLoan").val()==="0"){
+		band="false";
+		return band;
+	}
+	if($("#loanAmount").val()===""){
+		band="false";
+		return band;
+	}
+	if($("#loanModality").val()==="0"){
+		band="false";
+		return band;
+	}
+	if($("#loanMeans").val()==="0"){
+		band="false";
+		return band;
+	}
+	if($("#loanTerm").val() === ""){
+		band = "false";
+		return band;
+	}
+	var height1 = $("div.step-1-left").height();
+	height1 = height1;
+	$("div.step-1-right").height(height1);
+	return band;
+}
+
+function getMessagingConfiguration(numberProduct,typeProduct){
+	if(numberProduct !== ""){
+		var fields = {
+				numberProduct: numberProduct,
+				typeProduct: typeProduct
+		    }
+		    var $form = $('<form>', {
+		        action: appname + '/messaging/configuration',
+		        method: 'post'
+		    }).append(
+		        $.map(fields, function (val, key) {
+		            return $('<input>').attr({
+		                type: "hidden",
+		                name: key,
+		                value: val
+		            })
+		        })
+		    )
+		    $form.appendTo('body').submit();
+	}
+	
+	
+}
+
+function updateMessagingConfiguration(){
+	var typeProduct = $("#typeProductMessagingConfiguration").val();
+	var inputChecks = $("#div-content-messagingConfiguration input[type='checkbox']:checked");//se obtiene todos los seleccionados
+	
+	var obj = {};
+	var band = false;
+	var alerts = [];
+	
+	jQuery.each(inputChecks,function(i,val){
+		var arrayChecks = val.getAttribute("id").split("-");
+		var id = arrayChecks[1];
+		if(id == 'cardBalance') {
+			id = "accountBalance";
+		}
+		var contentID = "#div-"+id;
+		var checkVal = $(contentID + " #check-"+id).val();
+		var selectPhone = $(contentID + " #select-phone-"+id).val();
+		var selectEmail = $(contentID + " #select-email-"+id).val();
+		var minimAmount = null;
+		var selectFrequency = null;
+		var selectSchedule = null;
+		if(id === "accountBalance"){
+			selectFrequency = $(contentID + " #select-frequency-"+id).val();
+			selectSchedule = $(contentID + " #select-schedule-"+id).val();
+		}else if(id==="checkbookConfirmation"){
+			minimAmount = null;
+		}else{
+			minimAmount = $(contentID + " #input-minimum-amount-"+id).val().replace(/\./g, '').replace(/,/g, '.');
+		}
+		obj = verifyContentMessagingConfiguration(id,checkVal,selectPhone,selectEmail,minimAmount,selectFrequency,selectSchedule);
+		if(obj.status === "ERROR"){
+			band = true;
+			return false;
+		}else{
+			if(selectPhone === "0")selectPhone = null;
+			if(selectEmail === "0")selectEmail = null;
+			var alert = new Alert(checkVal,selectPhone,selectEmail,minimAmount,selectFrequency,selectSchedule);
+			alerts.push(alert);
+		}	 
+	});//se cargan todas las id de los checks y se reemplaza para obtener el contenedor de todos
+	if(band){
+		var msg = 'Favor verificar, existen campos incompletos ';
+		showModalGenericError(msg);
+	}else{
+		var typeProduct = $("#typeProductMessagingConfiguration").val();
+		$.ajax({
+			type: "POST",
+			url: appname + "/messaging/configuration/register",
+			data:{
+				alerts:JSON.stringify(alerts),
+				typeProduct:typeProduct
+			}
+		}).done(function (data) {
+			var msg = "Datos Actualizados Correctamente";
+			showModalDataActualization(msg)
+		}).fail(function (request, status, error) {
+			var errorData = request.responseJSON;
+			ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+		});
+	}
+}
+function Alert(checkVal,selectPhone,selectEmail,minimAmount,selectFrequency,selectSchedule){
+	this.alert = checkVal;
+	this.phone = selectPhone;
+	this.email = selectEmail;
+	this.minimAmount = minimAmount;
+	this.frequency = selectFrequency;
+	this.schedule = selectSchedule;
+}
+function verifyContentMessagingConfiguration(id,checkVal,selectPhone,selectEmail,minimAmount,selectFrequency,selectSchedule){
+	var obj = {"status":"OK","msg":""};
+	if(id === "accountBalance"){
+		if(selectPhone === "0" && selectEmail === "0"){
+			obj.status = "ERROR";
+			obj.msg = "Debe seleccionar al menos un medio de envio";
+			return obj;
+		}
+		if(selectFrequency === "0" && selectSchedule !=="0"){
+			obj.status = "ERROR";
+			obj.msg = "Debe seleccionar una frecuencia";
+			return obj;
+		}else if(selectFrequency !=="0" && selectSchedule ==="0"){
+			obj.status = "ERROR";
+			obj.msg = "Debe seleccionar un horario";
+			return obj;
+		}else if(selectFrequency === "0" && selectSchedule ==="0"){
+			obj.status = "ERROR";
+			obj.msg = "Debe seleccionar una frecuencia y un horario";
+			return obj;	
+		}
+	}else if (id === "checkbookConfirmation"){
+		if(selectPhone === "0" && selectEmail === "0"){
+			obj.status = "ERROR";
+			obj.msg = "Debe seleccionar al menos un medio de envio";
+			return obj;
+		}
+	}else{
+		if(selectPhone === "0" && selectEmail === "0"){
+			obj.status = "ERROR";
+			obj.msg = "Debe seleccionar al menos un medio de envio";
+			return obj;
+		}
+		if(minimAmount === ""){
+			obj.status = "ERROR";
+			obj.msg = "Debe introducir un monto";
+			return obj;
+		}
+	}
+	return obj;
+}
+
+
+function extractFilter(){
+	//Se cargan las variables con los valores escritos en los input
+	filterdateVal=$("#extract-datepicker").val();
+	
+	//Verifica que filtros tienen datos
+	if (filterdateVal != ""){//Se filtra por fecha, numero de producto y tipo
+		applyFiltersExtract(filterdateVal);
+	}else{
+		//no se aplica nuingun filtro y se vuelven a mostrar todas las filas 
+		$('#responseListTableExtracts tr').each(function(){
+			$(this).removeClass("hidden");
+		});
+		$("#table-extract").removeClass("hidden");
+		$("#table-aux-extract").addClass("hidden");
+	}
+}
+
+
+function applyFiltersExtract(filterVal){
+    var count = 0;
+
+    function parseDateDMY(value){
+        if(!value) return null;
+        var parts = value.split('/');
+        if(parts.length !== 3) return null;
+        var day = parseInt(parts[0], 10);
+        var month = parseInt(parts[1], 10) - 1;
+        var year = parseInt(parts[2], 10);
+        return new Date(year, month, day);
+    }
+
+    var filterDate = parseDateDMY(filterVal);
+    if(!filterDate || isNaN(filterDate.getTime())) return;
+
+    var monthStart = new Date(filterDate.getFullYear(), filterDate.getMonth(), 1);
+    var monthEnd = new Date(filterDate.getFullYear(), filterDate.getMonth() + 1, 0);
+
+    $('#responseListTableExtracts tr').each(function() {
+        var startDate = parseDateDMY($(this).find('td:eq(3)').text());
+        var endDate = parseDateDMY($(this).find('td:eq(4)').text());
+
+        if(startDate && endDate){
+            var isInRange = (startDate <= monthEnd) && (endDate >= monthStart);
+
+            if (isInRange) {
+                $(this).removeClass("hidden");
+                count += 1;
+            } else {
+                $(this).addClass("hidden");
+            }
+        } else {
+            $(this).addClass("hidden");
+        }
+    });
+
+    if(count === 0){
+        $("#table-extract").addClass("hidden");
+        $("#table-aux-extract").removeClass("hidden");
+    }else{
+        $("#table-extract").removeClass("hidden");
+        $("#table-aux-extract").addClass("hidden");
+    }
+}
+

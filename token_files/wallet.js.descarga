@@ -1,0 +1,53 @@
+function getWallet() {
+    location.href='/bancop/wallet';
+}
+
+/*$("#buttonSelectAccountWalletOrigin").on('click', function () {
+    numberAccount = $("#numberProduct option:selected").val();
+    textAccount = $("#numberProduct option:selected").text();
+    if (numberAccount != "0") {
+
+        $("#step-1").addClass("hidden");
+        $("#step-2").removeClass("hidden");
+        $("#step-3").addClass("hidden");
+        $("#step-4").addClass("hidden");
+
+        //getListadoCuotasPrestamo(numberLoan);
+
+        var height3 = $("div.step-31-left").height();
+        height3 = height3 + 20;
+        $("div.step-31-right").css('height', height3);
+
+        var height = $("div.step-3-left").height();
+        height = height + 20;
+        $("div.step-3-right").css('height', height);
+
+    } else {
+        var msg = 'Seleccione una Cuenta';
+
+        $("#fullfillError").hide();
+        $("#fullfillError").show();
+        $("#fullfillError").removeClass("hidden");
+        $("#msg").text(msg);
+
+        $("#container-main").removeClass("content-main");
+    }
+
+});*/
+
+function getWallets(accountNumber) {
+    $.ajax({
+        type: "POST",
+        url: appname + "/wallet/list",
+        data: {
+            numberProduct: accountNumber,
+        }
+    }).done(function (data) {
+        $("#listMonthly").html(data);
+
+    }).fail(function (request, status, error) {
+        var errorData = request.responseJSON;
+        $("#container-main").css('margin-top', '0px');
+        ajaxErrorHandler(errorData, status, error, "genericError");
+    })
+}

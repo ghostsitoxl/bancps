@@ -1,0 +1,1256 @@
+
+/**
+ * Created by Jose on 21/03/2018.
+ */
+var BENEFICIARY_NAME_INTER = "";
+var BENEFICIARY_NUMBER_INTER = "";
+var BENEFICIARY_TYPE_DOCUMENT_INTER = "";
+var BENEFICIARY_DOCUMENT_INTER = "";
+var BENEFICIARY_COUNTRY_INTER = "";
+var BENEFICIARY_CITY_INTER = "";
+var BENEFICIARY_DIRECTION_INTER = "";
+var BENEFICIARY_EMAIL = "";
+var TEXT_STEP_2 = "";
+var TEXT_STEP_3 = "";
+var NRO_ACCOUNT_DELETE = ""
+
+function goBackToStepthreeTransfer(){
+	$("#step-1").addClass("hidden");
+	$("#step-2").addClass("hidden");
+    $("#step-3").removeClass("hidden");
+    $("#step-4").addClass("hidden");
+    loadBeneficiaryDataTransfer();
+    
+}
+
+//Funciones que cargan el objeto de transferencia internacional
+function loadTransferInternationalBank(origin, destinyAccount, amount, coinType, exchange, time, paymentMode, accountPaymentMode, reason,
+										concept, entityName, entityCountry, entityCity, swift, aba, intermediaryBank, 
+										intermediaryCountry, intermediaryCity, intermediarySwift, intermediaryAba, payOrder, coinPayOrder, amountPayOrder){
+	this.originAccount = origin;
+    this.destinyAccount = destinyAccount;
+    this.amount = amount.replace(/\./g, '').replace(/,/g, '.');;
+    this.coin = coinType;
+    this.exchangeContract = exchange;
+    this.time = time;
+    this.paymentMode = paymentMode;
+    this.accountPaymentMode = accountPaymentMode;
+    this.reason = reason;
+    this.concept = concept;
+    this.payOrder = payOrder;
+    this.coinPayOrder = coinPayOrder;
+    this.amountPayOrder = amountPayOrder != "" ? amountPayOrder.replace(/\./g, '').replace(/,/g, '.') : 0;
+    this.requirePayOrder = $("#transferenciaInternacional #choose-reason-0 option:selected").attr("require-pay-order") == "S";
+    this.internationalBank = new loadBankData(entityName, entityCountry, entityCity, swift, aba);
+    this.internationalIntermediaryBank = new loadIntermediaryData(intermediaryBank, intermediaryCountry, intermediaryCity, intermediarySwift, intermediaryAba);
+ }
+function loadBankData(entityName, entityCountry, entityCity, swift, aba){
+	this.name = entityName;
+	this.country = entityCountry;
+	this.city = entityCity;
+	this.swift = swift;
+	this.aba = aba;
+}
+function loadIntermediaryData(entityName, entityCountry, entityCity, swift, aba){
+	this.name = entityName;
+	this.country = entityCountry;
+	this.city = entityCity;
+	this.swift = swift;
+	this.aba = aba;
+}
+function loadBeneficiaryData(beneficiaryName, beneficiaryNumber, beneficiaryDirection, beneficiaryTypeDocument, beneficiaryDocument, beneficiaryCountry, beneficiaryCity, beneficiaryEmail){
+	this.denomination = beneficiaryName;
+	this.number = beneficiaryNumber;
+	this.document = beneficiaryDocument;
+	this.documentType = beneficiaryTypeDocument;
+	this.country = beneficiaryCountry;
+	this.city = beneficiaryCity;
+	this.direction = beneficiaryDirection;
+	this.emailComprobanteSwift = beneficiaryEmail;
+}
+
+//Funcion para pasar del paso 2 al 3 en transferencias Internacionales
+function transferInternationalRegisterBank(BankData){
+	$(".loader").removeClass("hidden");
+	$("#buttonSelectAccountDestiny").attr("disabled","disabled");
+	$.ajax({
+		type: "POST",
+		url: appname + "/transfer/interregisterbank",
+		data: { bank: BankData,
+
+		}	
+	}).done(function (data) {
+		$(".loader").addClass("hidden");
+		$("#step-2").addClass("hidden");
+		$("#buttonSelectAccountDestiny").removeAttr("disabled");
+		$("#step-3").html(data);
+		$("#step-3").removeClass("hidden");
+		loadCountries("beneficiary");
+		$("#numberCuentaConfirm").text(productText)
+		$("#numberCuentaConfirmDestination").text(TEXT_STEP_2);
+		loadBeneficiaryDataTransfer();
+		
+		var height1 = $("div.step-41-left").height();
+		height1 = height1;
+		$("div.step-41-right").height(height1);
+		
+		var height1 = $("div.step-42-left").height();
+		height1 = height1;
+		$("div.step-42-right").height(height1);
+		$("div.step-42-right i").css("height","100%");
+		
+		var height1 = $("div.step-43-left").height();
+		height1 = height1;
+		$("div.step-43-right").height(height1+10);
+		$('#genericError').hide();
+	}).fail(function (request, status, error) {
+		$(".loader").addClass("hidden");
+		$("#buttonSelectAccountDestiny").removeAttr("disabled");
+		var errorData = request.responseJSON;
+		ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+	})
+}
+//Funcion que valida si todos los campos estan cargados
+function validateInternationalInputs(origin,coin, amount, destinyAccount, reason, time, paymentMode, accountPaymentMode, concept, entityName, entityCountry,
+			entityCity, swift, aba, intermediaryBank, intermediaryCountry, intermediaryCity, intermediarySwift, intermediaryAba, payOrder, coinPayOrder, amountPayOrder){
+	var intermediaryCountryValidate = $("div#intIntermediary #choose-country").val();
+	var intermediarySwiftValidate = $("#intermediarySwift").val();
+	var intermediaryAbaValidate = $("#intermediaryAba").val();
+	var allOK = "true";
+	var requiereOrdenDePago =  $("#transferenciaInternacional #choose-reason-0 option:selected").attr("require-pay-order") == "S";
+	
+	if(origin === "" || coin === "0" || amount === "" || destinyAccount === "" || destinyAccount.length > 40 || reason === "0" || time === "Null" ||  paymentMode === "0" || accountPaymentMode === "" || concept === "" ||
+	  (requiereOrdenDePago && (payOrder === "" || coinPayOrder === "" || amountPayOrder === "")) || entityName === "" || entityCountry === "0" || entityCity === "0" || (aba === "" && swift ==="")){
+		allOK="false";
+	}
+	if(intermediaryBank !== null && (intermediaryCountry === "0" || intermediaryCity === "0" || (intermediarySwiftValidate === "" && intermediaryAbaValidate === ""))){
+		allOK="false";
+	}else if(intermediaryBank === null && (intermediaryCountryValidate !== "0" || intermediarySwiftValidate !== "" || intermediaryAbaValidate !== "")){
+		allOK="false";
+	}
+	return allOK;
+}
+
+function setEmptyErrorMessagesInternational(){
+	var inputBank = $("#inputBank").val();
+	var inputDestiny = $("div#transferenciaInternacional #select-beneficiary-international").val();
+	var chooseCountry = $("div#intDestiny #choose-country").val();
+	var chooseCity = $("div#intDestiny #choose-city").val();
+	var inputSwift = $("#inputSwift").val();
+	var inputAba = $("#inputABA").val();
+	var intermediaryEntity = $("#intermediaryEntity").val();
+	var intermediaryCountry = $("div#intIntermediary #choose-country").val();
+	var intermediaryCity = $("div#intIntermediary #choose-city").val();
+	var intermediarySwift = $("#intermediarySwift").val();
+	var intermediaryAba = $("#intermediaryAba").val();
+	var paymentMode = $("#selectPaymentMode").val();
+	var amount = $("div#transferenciaInternacional #transfer-ammount-0").val();
+	var time = $("#selectTime").val();
+	var reason = $("div#transferenciaInternacional #choose-reason-0").val();
+	var currency = $("#transferenciaInternacional #transferCoinInt").val();
+	var concept = $("div#transferenciaInternacional #transfer-concept-0").val();
+	
+	var beneficiaryName = $("#beneficiaryName").val();
+	var typeDocumentBeneficiary = $("div#beneficiaryForm #choose-type-document-0").val();
+	var beneficiaryDocument = $("#beneficiaryDocument").val();
+    var beneficiaryCountry = $("div#beneficiaryForm div#intBeneficiary #choose-country").val();
+    var beneficiaryCity = $("div#beneficiaryForm div#intBeneficiary #choose-city").val();
+    var beneficiaryDirection = $("#beneficiaryDirection").val();
+	var payOrder = $("#transferenciaInternacional #transferPayOrder").val();
+	var coinPayOrder = $("#transferenciaInternacional #transferCoinPayOrder").val();
+	var amountPayOrder = $("#transferenciaInternacional #transferAmountPayOrder").val();
+	
+	if(currency === "0"){
+		$("#transferenciaInternacional #error-transfer-coin-0").text("Seleccione una Moneda");
+		$("#transferenciaInternacional #transferCoinInt").addClass("orange-background");
+	}
+	if(inputBank === ""){
+		$("#inputBank").addClass("orange-background");
+	    $("#error-inputBank").text("Introduzca una Entidad Bancaria");
+	}if(inputDestiny === ""){
+		$("div#transferenciaInternacional #select-beneficiary-international").addClass("orange-background");
+	    $("div#transferenciaInternacional #error-bank-destiny-0").text("Introduzca una Cuenta");
+	}if(inputDestiny.length > 40){
+		$("div#transferenciaInternacional #select-beneficiary-international").addClass("orange-background");
+	    $("div#transferenciaInternacional #error-bank-destiny-0").text("La cuenta supera el tamaño permitido");
+	
+	}if(chooseCountry === "" || chooseCountry === "0"){
+		$("div#transferenciaInternacional div#intDestiny #choose-country").addClass("orange-background")
+		 $("div#intDestiny #error-choose-country").text("Seleccione un Pais");
+	}if(chooseCity === "" || chooseCity === "0"){
+		$("div#transferenciaInternacional div#intDestiny #choose-city").addClass("orange-background")
+	    $("div#intDestiny #error-choose-city").text("Seleccione una Ciudad");
+	}if((inputSwift === "" && inputAba === "")){
+		$("#inputSwift").addClass("orange-background");
+		$("#error-inputSwift").text("Introduzca Codigo Aba o Swift");			
+		
+		$("#inputABA").addClass("orange-background");
+		$("#error-inputABA").text("Introduzca Codigo Aba o Swift");			
+	}if(intermediaryEntity !== "" && (intermediaryCountry === "" || intermediaryCountry === "0")){
+		$("#intermediaryCountry-div #choose-country").addClass("orange-background");
+	    $("div#intIntermediary #error-choose-country").text("Seleccione un Pais");
+	}if(intermediaryEntity !== "" && (intermediaryCity === "" || intermediaryCity === "0")){
+		$("div#intIntermediary #choose-city").addClass("orange-background");
+	    $("div#intIntermediary #error-choose-city").text("Seleccione una Ciudad");
+	}if(intermediaryEntity !== "" && (intermediarySwift === "" && intermediaryAba ==="")){
+		$("#intermediarySwift").addClass("orange-background");
+	    $("#error-intermediarySwift").text("Introduzca Codigo Swift");
+	    
+	    $("#intermediaryAba").addClass("orange-background");
+	    $("#error-intermediaryABA").text("Introduzca Codigo ABA");
+	}if(intermediaryEntity === "" && (intermediaryCountry !== "0" || intermediarySwift !== "" || intermediaryAba !== "")){
+		$("#intermediaryEntity").addClass("orange-background");
+		$("#error-intermediaryEntity").text("Introduzca una Entidad Bancaria");
+	}if(paymentMode === "" || paymentMode === "0"){
+		$("#selectPaymentMode").addClass("orange-background");
+	    $("#error-selectPaymentMode").text("Seleccione Modo de Pago");
+	}if(paymentMode === "O" && $("#modalitySelectProduct").val() === "0"){
+		$("#modalitySelectProduct").addClass("orange-background");
+		$("#error-paymentModeAccount").text("Seleccione una Cuenta");
+	}if(paymentMode === "B" && $("#paymentModeAccount").val() === ""){
+		$("#paymentModeAccount").addClass("orange-background");
+		$("#error-paymentModeAccount").text("Introduzca una Cuenta");
+	}if(amount === ""){
+		$("div#transferenciaInternacional #transfer-ammount-0").addClass("orange-background");
+	    $("div#transferenciaInternacional #error-transfer-ammount-0").text("Introduzca un Monto");
+	}if(time === "Null"){
+		$("#selectTime").addClass("orange-background");
+	    $("#error-selectTime").text("Seleccione el Tiempo");
+	}if(reason === "0"){
+		$("div#transferenciaInternacional #error-choose-reason-0").text("Seleccione un Motivo");
+	    $("div#transferenciaInternacional #choose-reason-0").addClass("orange-background");
+	}if(beneficiaryName === ""){
+		$("#beneficiaryForm #error-beneficiaryName").text("Introduzca una Denominación");
+		$("#beneficiaryForm #beneficiaryName").addClass("orange-background");
+	}if(beneficiaryCountry === "0"){
+		$("#beneficiaryForm #choose-country").addClass("orange-background");
+		$("#beneficiaryForm #error-choose-country").text("Seleccione un Pais");
+	}if(beneficiaryCity === "0"){
+		$("#beneficiaryForm #choose-city").addClass("orange-background");
+	    $("#beneficiaryForm #error-choose-city").text("Seleccione una Ciudad");
+	}if(beneficiaryDirection === ""){
+		//$("#beneficiaryForm #error-beneficiaryName").text("Introduzca una Denominación");
+		$("#beneficiaryForm #beneficiaryDirection").addClass("orange-background");
+	}if(payOrder === ""){//"}if(payOrder || payOrder === ""){" NHB-45 MVAM
+		$("div#transferenciaInternacional #error-transferPayOrder").text("Introduzca una Orden de Pago");
+	    $("div#transferenciaInternacional #transferPayOrder").addClass("orange-background");
+	}if(concept === ""){
+		$("div#transferenciaInternacional #error-transfer-concept-0").text("Introduzca un Concepto");
+		$("div#transferenciaInternacional #transfer-concept-0").addClass("orange-background");
+	}
+    
+    var height1 = $("div.step-2-left").height();
+	$("div.step-2-right").height(height1);
+}
+
+//Funcion para pasar del paso 3 al 4 en transferencias Internacionales
+function transferInternationalRegisterBeneficiary(BeneficiaryData){
+	$(".loader").removeClass("hidden");
+	$("#buttonBeneficiaryDataNext").attr("disabled","disabled");
+	$.ajax({
+		type: "POST",
+		url: appname + "/transfer/registerinternational",
+		data: { beneficiary: BeneficiaryData,
+
+		}	
+	}).done(function (data) {
+		$(".loader").addClass("hidden");
+		$("#step-3").addClass("hidden");
+		$("#buttonBeneficiaryDataNext").removeAttr("disabled");
+		$("#step-4").html(data);
+		$("#step-4").removeClass("hidden");
+		
+		$("div.step-last1-left #numberCuentaConfirm").text(productText);
+		var quotization = $("#quotizationInternational").val();
+		var comDesc = $("#comDesc").val();
+		var payerDesc = $("#payerDesc").val();
+		if(quotization != 1 && quotization != 0){
+			TEXT_STEP_2 += " / "+ "Cotización: GS. "+quotization;
+		}
+		TEXT_STEP_2 += " / "+"Comisión: "+comDesc +" / Pago Comisión: "+payerDesc;
+		
+		
+		$("div.step-last2-left #numberCuentaConfirmDestination").text(TEXT_STEP_2);
+		$("#BeneficiaryData").text(TEXT_STEP_3);
+		
+		var height1 = $("div.step-last1-left").height();
+		height1 = height1;
+		$("div.step-last1-right").height(height1);
+		
+		var height1 = $("div.step-last2-left").height();
+		height1 = height1;
+		$("div.step-last2-right").height(height1);
+		$("div.step-last2-right i").css("height","100%");
+		
+		var height1 = $("div.step-last3-left").height();
+		height1 = height1;
+		$("div.step-last3-right").height(height1);
+		
+		var height1 = $("div.step-last-left").height();
+		height1 = height1;
+		$("div.step-last-right").height(height1);
+		
+		var height1 = $("div .step-3-left").height();
+		$("div .step-3-right").height(height1);
+	
+	}).fail(function (request, status, error) {
+		$(".loader").addClass("hidden");
+		$("#buttonBeneficiaryDataNext").removeAttr("disabled");
+		var errorData = request.responseJSON;
+		ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+	})
+}
+
+function confirmTransferInternational(){
+	var key = $("#clave").val();
+	var token = $("#tokenTransfer").val();
+	var keyAproval = $("#keyAproval").val();
+	var typeTransaction = $("#typeTransaction").val();
+	$(".loader").removeClass("hidden");
+	$("#step-4 #buttonReadyToTransfer").attr("disabled","disabled");
+	$.ajax({
+		type: "POST",
+		url: appname + "/transfer/confirminternationaltransfer",
+		data: { 
+			dinamicKey: key,
+			tokenTransferAproved:token,
+			keyAproval : keyAproval,
+			typeTransaction : typeTransaction,
+			numberProduct : numberProduct
+
+		}	
+	}).done(function (data) {
+		$(".loader").addClass("hidden");
+		$("#step-3").addClass("hidden");
+		$("#step-4 #buttonReadyToTransfer").removeAttr("disabled");
+		$("#step-4").html(data);
+		$("#step-4").removeClass("hidden");
+		
+		$("div.step-last1-left #numberCuentaConfirm").text(productText);
+		
+		
+		$("div.step-last2-left #numberCuentaConfirmDestination").text(TEXT_STEP_2);
+		$("#BeneficiaryData").text(TEXT_STEP_3);
+		
+		var height1 = $("div.step-last1-left").height();
+		height1 = height1;
+		$("div.step-last1-right").height(height1);
+		
+		var height1 = $("div.step-last2-left").height();
+		height1 = height1;
+		$("div.step-last2-right").height(height1);
+		$("div.step-last2-right i").css("height","100%");
+		
+		var height1 = $("div.step-last3-left").height();
+		height1 = height1;
+		$("div.step-last3-right").height(height1);
+		
+		var height1 = $("div.step-last-left").height();
+		height1 = height1;
+		$("div.step-last-right").height(height1);
+	
+	}).fail(function (request, status, error) {
+		$(".loader").addClass("hidden");
+		$("#step-4 #buttonReadyToTransfer").removeAttr("disabled");
+		var errorData = request.responseJSON;
+		ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+	})
+}
+function ShowBeneficiarySelectLabel(){
+	var elementID = this.getAttribute("id");
+	var element = $("div#beneficiaryForm #"+elementID);
+	
+	if(element.val() !== "0" ){
+		$("div#beneficiaryForm #label-" + elementID).removeClass("hidden");
+	}else{
+		$("div#beneficiaryForm #label-" + elementID).addClass("hidden");
+	}
+}
+
+
+function saveBeneficiaryDataInter(beneficiaryName,beneficiaryNumber, beneficiaryDirection, typeDocumentBeneficiary,
+		beneficiaryDocument,beneficiaryCountry,beneficiaryCity, beneficiaryEmail){
+	BENEFICIARY_NAME_INTER = beneficiaryName;
+	BENEFICIARY_NUMBER_INTER = beneficiaryNumber;
+	BENEFICIARY_TYPE_DOCUMENT_INTER = typeDocumentBeneficiary;
+	BENEFICIARY_DOCUMENT_INTER = beneficiaryDocument;
+	BENEFICIARY_COUNTRY_INTER = beneficiaryCountry;
+	BENEFICIARY_CITY_INTER = beneficiaryCity;
+	BENEFICIARY_DIRECTION_INTER = beneficiaryDirection;
+	BENEFICIARY_EMAIL = beneficiaryEmail;
+	
+}
+function loadBeneficiaryDataTransfer(){
+	$("div#beneficiaryForm #beneficiaryName").val(BENEFICIARY_NAME_INTER);
+	$("div#beneficiaryForm #beneficiaryName").trigger("change");
+	$("div#beneficiaryForm #beneficiaryPhone").val(BENEFICIARY_NUMBER_INTER);
+	$("div#beneficiaryForm #beneficiaryPhone").trigger("change");
+	setTimeout(function() {
+		$("div#beneficiaryForm #type-documentBeneficiary #choose-type-document-0").val(BENEFICIARY_TYPE_DOCUMENT_INTER).change();
+	},1000);
+	if(!$.isEmptyObject(BENEFICIARY_COUNTRY_INTER) && BENEFICIARY_COUNTRY_INTER !== ""){
+		let codCountry = BENEFICIARY_COUNTRY_INTER.codigoPais !== undefined ? BENEFICIARY_COUNTRY_INTER.codigoPais : BENEFICIARY_COUNTRY_INTER;
+		$("div#beneficiaryForm #choose-country").val(codCountry);
+		setTimeout(function () {
+			$("div#beneficiaryForm #choose-country").val(codCountry).change();
+		}, 1200);
+		/*$("div#beneficiaryForm #choose-country").change(function (e, callback) {
+
+			setTimeout(function () {
+				if (typeof callback === "function")
+					callback();
+				$("div#beneficiaryForm #choose-country").val(BENEFICIARY_COUNTRY_INTER.codigoPais).change();
+			}, 1000);
+		});*/
+		/*$("div#beneficiaryForm #choose-country").val(BENEFICIARY_COUNTRY_INTER.codigoPais);
+		$("div#beneficiaryForm #choose-country").trigger("change",function(){
+			setTimeout(function() {
+				if (typeof callback === "function")
+					callback();
+			}, 300);
+		});*/
+	}
+	if(!$.isEmptyObject(BENEFICIARY_CITY_INTER) && BENEFICIARY_CITY_INTER !== ""){
+		/*$("div#beneficiaryForm #choose-country").trigger("change", function () {
+			$("div#beneficiaryForm #choose-city").val(BENEFICIARY_CITY_INTER.codigoCiudad);
+			$("div#beneficiaryForm #choose-city").trigger("change");
+			setTimeout(function () {
+				$("div#beneficiaryForm #choose-city").val(BENEFICIARY_CITY_INTER.codigoCiudad).change();
+			}, 1500);
+		});*/
+		let codCity = BENEFICIARY_CITY_INTER.codigoCiudad !== undefined ? BENEFICIARY_CITY_INTER.codigoCiudad : BENEFICIARY_CITY_INTER;
+		setTimeout(function () {
+			$("div#beneficiaryForm #choose-city").val(codCity).change();
+		}, 2000);
+
+
+		/*$("div#intDestiny #choose-country").trigger("change", function () {
+			$("div#intDestiny #choose-city").val(obj.ciudadDestino.codigoCiudad);
+			$("div#intDestiny #choose-city").trigger("change");
+			setTimeout(function () {
+				$("div#intDestiny #choose-city").val(obj.ciudadDestino.codigoCiudad);
+				$("div#intDestiny #choose-city").trigger("change");
+			}, 500);
+		});
+		setTimeout(function() {
+			$("div#beneficiaryForm #choose-city").val(BENEFICIARY_CITY_INTER.codigoCiudad);
+			$("div#beneficiaryForm #choose-city").trigger("change");
+		},500);*/
+	}
+
+	
+	$("#beneficiaryDocument").val(BENEFICIARY_DOCUMENT_INTER);
+	$("#beneficiaryDocument").trigger("change");
+	$("#beneficiaryDirection").val(BENEFICIARY_DIRECTION_INTER);
+	$("#beneficiaryDirection").trigger("change");
+	$("#beneficiaryEmail").val(BENEFICIARY_EMAIL);
+	$("#beneficiaryEmail").trigger("change");
+}
+function sendBeneficiaryNextStep(){
+	var beneficiaryName = $("#beneficiaryName").val();
+	var beneficiaryNumber = $("#beneficiaryPhone").val();
+	var beneficiaryDirection = $("#beneficiaryDirection").val();
+	var typeDocumentBeneficiary = $("div#beneficiaryForm #choose-type-document-0").val();
+	var typeDocumentBeneficiaryDesc = $("div#beneficiaryForm #choose-type-document-0 option:selected").text();
+	var beneficiaryDocument = $("#beneficiaryDocument").val();
+	var beneficiaryCountryDesc = $("div#intBeneficiary #choose-country option:selected").text();
+    var beneficiaryCountry = $("div#intBeneficiary #choose-country").val();
+    var beneficiaryCityDesc = $("div#intBeneficiary #choose-city option:selected").text();
+    var beneficiaryCity = $("div#intBeneficiary #choose-city").val();
+    var beneficiaryEmail = $("#beneficiaryEmail").val();
+    
+    var next = "false";
+    next = validateBeneficiaryInputs(beneficiaryName, beneficiaryNumber, beneficiaryDirection, typeDocumentBeneficiary, beneficiaryDocument, beneficiaryCountry, beneficiaryCity, beneficiaryEmail);
+	if (next === "true"){
+		
+		if(beneficiaryEmail != "" && !validateEmail(beneficiaryEmail)){
+			showModalGenericError("Ingrese un email válido.");
+			return;
+		}
+		
+		var transferInternationalBeneficiary = new loadBeneficiaryData(beneficiaryName, beneficiaryNumber, beneficiaryDirection, typeDocumentBeneficiary, beneficiaryDocument, beneficiaryCountry, beneficiaryCity, beneficiaryEmail);
+		
+		saveBeneficiaryDataInter(beneficiaryName,beneficiaryNumber, beneficiaryDirection, typeDocumentBeneficiary,
+				beneficiaryDocument,beneficiaryCountry,beneficiaryCity, beneficiaryEmail);
+		transferInternationalBeneficiary = JSON.stringify(transferInternationalBeneficiary);
+        
+        TEXT_STEP_3 = "Denominación: " + beneficiaryName.toLowerCase().capitalize() + " / " + "Documento: " + beneficiaryDocument + " / " + "Tipo Documento: " + typeDocumentBeneficiaryDesc.toLowerCase().capitalize() + " / " +
+		"Pais: " + beneficiaryCountryDesc.toLowerCase().capitalize() + " / " + "Ciudad: " + beneficiaryCityDesc.toLowerCase().capitalize();
+        if(beneficiaryDirection !== ""){
+        	TEXT_STEP_3+=  " / "+"Dirección: "+ beneficiaryDirection.toLowerCase().capitalize();
+        }else if(beneficiaryNumber !== ""){
+        	TEXT_STEP_3+= " / " + "Teléfono: " + beneficiaryNumber +".";  
+        }
+        TEXT_STEP_3+=  " / "+"Email: "+ beneficiaryEmail;
+        transferInternationalRegisterBeneficiary(transferInternationalBeneficiary);
+	}else{
+		msg = "Debe Completar todos los campos";
+		showModalGenericError(msg);
+		setEmptyErrorMessagesInternational();
+	}
+}
+function validateBeneficiaryInputs(beneficiaryName, beneficiaryNumber, beneficiaryDirection, beneficiaryTypeDocument, beneficiaryDocument, beneficiaryCountry, beneficiaryCity, beneficiaryEmail){
+	var allOK = "true"
+	if(beneficiaryName === "" || beneficiaryCountry === "0" || beneficiaryCity === "0" || beneficiaryDirection === ""){
+		allOK="false";
+	}
+	return allOK;
+}
+
+function showHideLabelCountry(element){
+	var parent = element.parentElement.parentElement.parentElement.parentElement.parentElement.getAttribute("id");
+	var selectedCountry = element.value;
+	if(selectedCountry === "0"){
+		$("div#"+parent+" #label-choose-country").addClass("hidden");
+    }else{
+    	$("div#"+parent+" #label-choose-country").removeClass("hidden");
+    	loadCities(selectedCountry, parent);
+    }
+}
+
+function modifySelectCitiesInternationalTransfer(){
+	var selectorDestiny = $("#transferenciaInternacional #intDestiny #choose-city");
+	var selectorIntermediary = $("#transferenciaInternacional #intIntermediary #choose-city");
+	var selectorBeneficiary = $("#intBeneficiary #choose-city");
+
+	if(!selectorBeneficiary.next().hasClass("select2")){
+		selectorBeneficiary.select2({
+	        language:{
+	                formatNoMatches:function (term){
+	                return null;
+	        }
+	        },
+	        placeholder:'Seleccionar una ciudad',
+	        width:'100%',
+	        tags: true
+		}).on("select2:select", function(e) {
+		    
+		});
+		return;
+	}
+	
+	if(!selectorDestiny.next().hasClass("select2")){
+		selectorDestiny.select2({
+			language:{
+				formatNoMatches:function (term){
+					return null;
+				}
+			},
+			placeholder:'Seleccionar una ciudad',
+			width:'100%',
+			tags: true
+		}).on("select2:select", function(e) {
+			
+		});
+		return;
+	}
+	
+	if(!selectorIntermediary.next().hasClass("select2")){
+		selectorIntermediary.select2({
+			language:{
+				formatNoMatches:function (term){
+					return null;
+				}
+			},
+			placeholder:'Seleccionar una ciudad',
+			allowClear: true,
+			width:'100%',
+			tags: true
+		}).on("select2:select", function(e) {
+			
+		});
+	}
+	
+}
+
+function fillFieldsTransfer(account,typeTransfer,element){
+	var typeSipap = $("#transfer-type").val();
+	$(".loader").removeClass("hidden");
+	$.ajax({
+		type: "POST",
+		url: appname + "/transfer/fill-fields",
+		data: { 
+			account: account,
+			typeTransaction: typeTransfer,
+			typeSipap: typeSipap
+		}	
+	}).done(function (data) {
+		$(".loader").addClass("hidden");
+		var obj = jQuery.parseJSON(data);
+		switch (typeTransfer) {
+			case 'TRANSFERENCIA_INTERNACIONAL':
+				$("div#transferenciaInternacional #label-inter").removeClass("hidden");
+				$("div#transferenciaInternacional #transferCoinInt").val(obj.codigoMoneda);
+				$("#inputSwift").val(obj.entidadSwift);
+				if (obj.abaDestino !== "") {
+					$("div#transferenciaInternacional #inputABA").removeClass("empty");
+
+				}
+				$("#inputABA").val(obj.abaDestino);
+				BENEFICIARY_NAME_INTER = obj.beneficiario;
+				BENEFICIARY_NUMBER_INTER = obj.telefono;
+				BENEFICIARY_TYPE_DOCUMENT_INTER = obj.tipoDocumento;
+				BENEFICIARY_DOCUMENT_INTER = obj.nroDocumento;
+				if (typeof obj.paisBeneficiario !== 'undefined') {
+					BENEFICIARY_COUNTRY_INTER = obj.paisBeneficiario;
+					if (typeof obj.ciudadBeneficiario !== 'undefined') {
+						BENEFICIARY_CITY_INTER = obj.ciudadBeneficiario;
+					}
+				}
+				BENEFICIARY_DIRECTION_INTER = obj.dirBeneficiario;
+				BENEFICIARY_EMAIL = obj.correoElectronico;
+				$("div#transferenciaInternacional #inputBank").val(obj.entidad);
+				if (typeof obj.entidadInt !== 'undefined') {
+					$("div#transferenciaInternacional #intermediaryEntity").val(obj.entidadInt);
+					$("div#transferenciaInternacional #intermediaryEntity").trigger("change");
+				}
+				if (typeof obj.abaInter !== 'undefined') {
+					$("div#transferenciaInternacional #intermediaryAba").val(obj.abaInter);
+					$("div#transferenciaInternacional #intermediaryAba").trigger("change");
+				}
+				if (typeof obj.entidadSwiftInt !== 'undefined') {
+					$("div#transferenciaInternacional #intermediarySwift").val(obj.entidadSwiftInt);
+					$("div#transferenciaInternacional #intermediarySwift").trigger("change");
+				}
+				if (typeof obj.tiempo !== 'undefined') {
+					$("div#transferenciaInternacional #selectTime").val(obj.tiempo);
+					$("div#transferenciaInternacional #selectTime").trigger("change");
+				} else {
+					$("div#transferenciaInternacional #selectTime").val("0hs");
+				}
+				if (typeof obj.modalidadCobro !== 'undefined') {
+					$("div#transferenciaInternacional #selectPaymentMode").val(obj.modalidadCobro);
+					$("div#transferenciaInternacional #selectPaymentMode").trigger("change");
+				}
+				if (typeof obj.cuentaComision !== 'undefined') {
+					$("div#transferenciaInternacional #modalitySelectProduct").val(obj.cuentaComision);
+					$("div#transferenciaInternacional #modalitySelectProduct").trigger("change");
+				}
+				$("div#transferenciaInternacional #inputBank").removeClass("empty");
+				$("div#transferenciaInternacional #inputSwift").removeClass("empty");
+
+				if (!$.isEmptyObject(obj.paisDestino)) {
+					$("div#intDestiny #choose-country").val(obj.paisDestino.codigoPais);
+					$("div#intDestiny #choose-country").change(function (e, callback) {
+
+						setTimeout(function () {
+							if (typeof callback === "function")
+								callback();
+						}, 200);
+					});
+
+
+				}
+
+				if (!$.isEmptyObject(obj.ciudadDestino)) {
+					$("div#intDestiny #choose-country").trigger("change", function () {
+						$("div#intDestiny #choose-city").val(obj.ciudadDestino.codigoCiudad);
+						$("div#intDestiny #choose-city").trigger("change");
+						setTimeout(function () {
+							$("div#intDestiny #choose-city").val(obj.ciudadDestino.codigoCiudad);
+							$("div#intDestiny #choose-city").trigger("change");
+						}, 500);
+					});
+				}
+
+				if (!$.isEmptyObject(obj.paisInter)) {
+					$("div#intIntermediary #choose-country").val(obj.paisInter.codigoPais);
+					$("div#intIntermediary #choose-country").change(function (e, callback) {
+
+						setTimeout(function () {
+							if (typeof callback === "function")
+								callback();
+						}, 500);
+					});
+				}
+
+				if (!$.isEmptyObject(obj.ciudadInter)) {
+					$("div#intIntermediary #choose-country").trigger("change", function () {
+						$("div#intIntermediary #choose-city").val(obj.ciudadInter.codigoCiudad);
+						$("div#intIntermediary #choose-city").trigger("change");
+						setTimeout(function () {
+							$("div#intIntermediary #choose-city").val(obj.ciudadInter.codigoCiudad);
+							$("div#intIntermediary #choose-city").trigger("change");
+						}, 500);
+					});
+				}
+
+				break;
+			case 'TRANSFERENCIA_TERCEROS':
+
+				$("div#transferenciaTerceros #transfer-document1-0").val(obj.nroDocumento);
+				$("div#transferenciaTerceros #transfer-document1-0").removeClass("empty");
+				break;
+			case 'TRANSFERENCIA_XPRESS':
+				$("div#transferenciaXpress #transfer-document1-0").val(obj.nroDocumento);
+				$("div#transferenciaXpress #choose-entity-xpress-0").val(obj.entidad);
+				$("div#transferenciaXpress #label-for-choose-entity-xpress-0").removeClass("hidden");
+				$("div#transferenciaXpress #nameLastname-0").val(obj.beneficiario);
+				$("div#transferenciaXpress #nameLastname-0").removeClass("empty");
+				$("div#transferenciaXpress #choose-type-document-0").val(obj.tipoDocumento);
+				$("div#transferenciaXpress #label-choose-type-document-0").removeClass("hidden");
+
+				break;
+			default://si es SIPAP
+				var position = 0
+				if(element != null) {
+					split = element.context.id.split("-");
+					var position = split[split.length - 1];
+				}
+
+				$("#sipap-algo-" + position + " div#transferenciaSipap #transfer-coin-" + position).val(obj.codigoMoneda);
+				$(".select-currency-sipap").trigger("change");
+				$("#sipap-algo-" + position + " div#transferenciaSipap #transfer-coin-" + position).removeClass("empty");
+
+				$("#sipap-algo-" + position + " div#transferenciaSipap #choose-entity-" + position).val(obj.entidad);
+				$("#sipap-algo-" + position + " div#transferenciaSipap #label-for-choose-entity-" + position).removeClass("hidden");
+
+				$("#sipap-algo-" + position + " div#transferenciaSipap #nameLastname-" + position).val(obj.beneficiario);
+				$("#sipap-algo-" + position + " div#transferenciaSipap #nameLastname-" + position).removeClass("empty");
+				if (obj.tipoDocumento !== "") {
+					$("#sipap-algo-" + position + " div#transferenciaSipap #choose-type-document-" + position).val(obj.tipoDocumento);
+					$("#sipap-algo-" + position + " div#transferenciaSipap #label-choose-type-document-" + position).removeClass("hidden");
+
+				}
+				$("#sipap-algo-" + position + " div#transferenciaSipap #transfer-document1-" + position).val(obj.nroDocumento);
+				$("#sipap-algo-" + position + " div#transferenciaSipap #transfer-document1-" + position).removeClass("empty");
+				break;
+		}
+	}).fail(function (request, status, error) {
+		$(".loader").addClass("hidden");
+		var errorData = request.responseJSON;
+		ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+	})	
+}
+
+function fillFieldsTransferCooperativa(account,typeTransfer){
+	var typeSipap = $("#transfer-type").val();
+	$(".loader").removeClass("hidden");
+	$.ajax({
+		type: "POST",
+		url: appname + "/transfer/fill-fields",
+		data: { 
+			account: account,
+			typeTransaction: typeTransfer,
+			typeSipap: typeSipap
+		}	
+	}).done(function (data) {
+		$(".loader").addClass("hidden");
+		var obj = jQuery.parseJSON(data);
+		$("div#transferenciaCooperativa #choose-entity-coop-0").val(obj.entidad).change();
+		$("div#transferenciaCooperativa #choose-type-document-0").val(obj.tipoDocumento);
+    	$("div#transferenciaCooperativa #transfer-document1-0").val(obj.nroDocumento);
+    	$("div#transferenciaCooperativa #nameLastname-0").val(obj.beneficiario);
+    	$("div#transferenciaCooperativa #choose-country").val(obj.paisDestino.codigoPais);
+    	$("div#transferenciaCooperativa #choose-city").val(obj.ciudadDestino.codigoCiudad);
+    	$("div#transferenciaCooperativa #transferCoinInt").val(obj.codigoMoneda);
+	}).fail(function (request, status, error) {
+		$(".loader").addClass("hidden");
+		var errorData = request.responseJSON;
+		ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+	})	
+}
+
+function consultarOrdenDePago(){
+	var ordenDePago = $("#transferPayOrder").val();
+	if(ordenDePago == "") return;
+	$.ajax({
+		type: "GET",
+		url: appname + "/transfer/payOrder",
+		dataType: 'json', 
+		data: {
+			payOrder : ordenDePago
+		}
+	}).done(function(data){
+		console.log("data completa:", data);
+		$("#transferenciaInternacional #transferAmountPayOrder").val(data.monto.toString().replace(/\./,',')).trigger("keyup").attr("disabled", true);
+		$("#transferenciaInternacional #transferCoinPayOrder").val(data.codigoMoneda).change().attr("disabled", true);
+	}).fail(function(request, status, error){
+		var errorData = request.responseJSON;
+		$("#transferenciaInternacional #transferAmountPayOrder").attr("disabled", false).val("");
+		$("#transferenciaInternacional #transferCoinPayOrder").attr("disabled", false).val("0");
+		ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+	})
+}
+
+
+function validateCoopInputs(tranfData) {
+	if (tranfData.byAlias == true) {
+		if (tranfData.source === "" ||
+			tranfData.coin === "" || tranfData.coin === "0" ||
+			tranfData.ammount === "" ||
+			tranfData.concept === "" ||
+			tranfData.reason === "" || tranfData.reason === "0" ||
+			tranfData.alias === "" ||
+			tranfData.typeAlias === "") {
+			return false;
+		}
+		return true;
+	} else {
+		if (tranfData.cuentaOrigen === "" ||
+			tranfData.cuentaDestino === "" ||
+			tranfData.codCooperativa === "" ||
+			tranfData.nombreCooperativa === "" ||
+			tranfData.denominacion === "" ||
+			tranfData.moneda === "0" ||
+			tranfData.monto === "" ||
+			tranfData.tipoDocumento === "0" ||
+			tranfData.nroDocumento === "" ||
+			tranfData.codPais === "0" ||
+			tranfData.codCiudad === "undefined" ||
+			tranfData.codMotivo === "0" ||
+			tranfData.concepto === "") {
+			return false;
+		}
+		return true;
+	}
+}
+
+function validateXpressInputs(xpressData){
+	if(xpressData.originAccount === "" || xpressData.entity === "" || xpressData.destinyAccount === "" || xpressData.amount === "" || xpressData.concept === "")
+		//xpressData.beneficiary === "" || xpressData.typeDoc === "" || xpressData.numberDoc === "" ||
+		//xpressData.concept === "" ||
+		return false;
+	return true;
+}
+
+function setEmptyErrorMessagesCoop(tranfData) {
+	if (tranfData.alias !== undefined && tranfData.typeAlias !== undefined) {
+		var alias = tranfData.alias;
+		var typeAlias = tranfData.typeAlias;
+		var currency = tranfData.coin;
+		var amount = tranfData.ammount;
+		var concept = tranfData.concept;
+		var reason = tranfData.reason;
+		var codPais = tranfData.codPais;
+		var codCiudad = tranfData.codCiudad;
+
+		if (alias === "") {
+			$("#transferenciaCooperativa #alias-0").addClass("orange-background");
+			$("#transferenciaCooperativa #error-alias").text("Introduzca un alias");
+		}
+
+		if (typeAlias === "") {
+			$("#transferenciaCooperativa #aliasType-0").addClass("orange-background");
+			$("#transferenciaCooperativa #error-aliasType").text("Seleccione tipo de alias");
+		}
+
+		if (currency === "" || currency === "0") {
+			$("#transferenciaCooperativa #transferCoinInt").addClass("orange-background");
+			$("#transferenciaCooperativa #error-transfer-coin-0").text("Seleccione moneda");
+		}
+
+		if (amount === "") {
+			$("div#transferenciaCooperativa #transfer-ammount-0").addClass("orange-background");
+			$("div#transferenciaCooperativa #error-transfer-ammount-0").text("Introduzca monto");
+		}
+
+		if (concept === "") {
+			$("div#transferenciaCooperativa #transfer-concept-0").addClass("orange-background");
+			$("div#transferenciaCooperativa #error-transfer-concept-0").text("Introduzca concepto");
+		}
+
+		if (reason === "" || reason === "0") {
+			$("div#transferenciaCooperativa #choose-reason-0").addClass("orange-background");
+			$("div#transferenciaCooperativa #error-choose-reason-0").text("Seleccione motivo");
+		}
+
+		if (codPais === "" || codPais === "0") {
+			$("div#transferenciaCooperativa div#intDestinyCoop #choose-country").addClass("orange-background");
+			$("div#intDestinyCoop #error-choose-country").text("Seleccione país");
+		}
+
+		if (codCiudad === "" || codCiudad === "0" || codCiudad === undefined) {
+			$("div#transferenciaCooperativa div#intDestinyCoop #divChooseCity").addClass("orange-background");
+			$("div#transferenciaCooperativa div#intDestinyCoop #error-choose-city").text("Seleccione ciudad");
+		}
+	} else {
+		var beneficiaryAccount = tranfData.cuentaDestino
+		var currency = tranfData.moneda;
+		var amount = tranfData.monto;
+		var beneficiaryTypeDocument = tranfData.tipoDocumento;
+		var chooseCountry = tranfData.codPais;
+		var chooseCity = tranfData.codCiudad;
+		var beneficiaryDocument = tranfData.nroDocumento;
+		var beneficiaryName = tranfData.denominacion;
+		var concept = tranfData.concepto;
+		var reason = tranfData.codMotivo;
+		var cuentaDestino = tranfData.cuentaDestino;
+
+		if (beneficiaryTypeDocument === "" || beneficiaryTypeDocument === "0") {
+			$("#transferenciaCooperativa #choose-type-document-0").addClass("orange-background");
+			$("#transferenciaCooperativa #error-choose-type-document-0").text("Seleccione tipo de documento");
+		}
+		if (currency === "" || currency === "0") {
+			$("#transferenciaCooperativa #transferCoinInt").addClass("orange-background");
+			$("#transferenciaCooperativa #error-transfer-coin-0").text("Seleccione moneda");
+		}
+
+		if (amount === "") {
+			$("div#transferenciaCooperativa #transfer-ammount-0").addClass("orange-background");
+			$("div#transferenciaCooperativa #error-transfer-ammount-0").text("Introduzca monto");
+		}
+
+		if (chooseCountry === "" || chooseCountry === "0") {
+			$("div#transferenciaCooperativa div#intDestinyCoop #choose-country").addClass("orange-background");
+			$("div#intDestinyCoop #error-choose-country").text("Seleccione país");
+		}
+
+		if (chooseCity === "" || chooseCity === "0" || chooseCity === undefined) {
+			$("div#transferenciaCooperativa div#intDestinyCoop #divChooseCity").addClass("orange-background");
+			$("div#transferenciaCooperativa div#intDestinyCoop #error-choose-city").text("Seleccione ciudad");
+		}
+
+		if (beneficiaryName === "") {
+			$("#transferenciaCooperativa #nameLastname-0").addClass("orange-background");
+			$("#transferenciaCooperativa #error-nameLastname-0").text("Introduzca nombre y apellido");
+		}
+		if (concept === "") {
+			$("div#transferenciaCooperativa #transfer-concept-0").addClass("orange-background");
+			$("div#transferenciaCooperativa #error-transfer-concept-0").text("Introduzca concepto");
+		}
+		if (reason === "" || reason === "0") {
+			$("div#transferenciaCooperativa #choose-reason-0").addClass("orange-background");
+			$("div#transferenciaCooperativa #error-choose-reason-0").text("Seleccione motivo");
+		}
+
+		if (beneficiaryDocument === "") {
+			$("div#transferenciaCooperativa #transfer-document1-0").addClass("orange-background");
+			$("div#transferenciaCooperativa #error-transfer-document1-0").text("Introduzca documento");
+		}
+
+		if (cuentaDestino === "") {
+			$("#transferenciaCooperativaAccount span.select2").addClass("orange-background");
+			$("div#transferenciaCooperativaAccount #error-bank-destiny-0").text("Introduzca la cuenta destino");
+		}
+	}
+
+	// Ajustar la altura del contenedor derecho para que coincida con el izquierdo
+	var height1 = $("div.step-2-left").height();
+	$("div.step-2-right").height(height1);
+}
+
+function loadXpressData(originAccount,entity,destinyAccount,beneficiary,typeDoc,numberDoc,concept,amount){
+	this.originAccount = originAccount;
+	this.entity = entity;
+	this.destinyAccount = destinyAccount;
+	this.beneficiary = beneficiary;
+	this.typeDoc = typeDoc;
+	this.numberDoc = numberDoc;
+	this.concept = concept;
+	this.amount = amount;
+}
+
+function setEmptyErrorMessagesXpress(tranfData){
+	var originAccount = tranfData.originAccount;
+	var entity = tranfData.entity;
+	var destinyAccount = tranfData.destinyAccount;
+	var beneficiary = tranfData.beneficiary;
+	var typeDoc = tranfData.typeDoc;
+	var numberDoc = tranfData.numberDoc;
+	var concept = tranfData.concept;
+	var amount = tranfData.amount;
+
+	/*if(typeDoc === "" || typeDoc === "0"){
+		$("#transferenciaXpress #choose-type-document-0").addClass("orange-background");
+		$("#transferenciaXpress #error-choose-type-document-0").text("Seleccione tipo de documento");
+	}*/
+
+	if(amount === ""){
+		$("div#transferenciaXpress #transfer-ammount-0").addClass("orange-background");
+		$("div#transferenciaXpress #error-transfer-ammount-0").text("Introduzca monto");
+	}
+
+	/*if(beneficiary === ""){
+		$("#transferenciaXpress #nameLastname-0").addClass("orange-background");
+		$("#transferenciaXpress #error-nameLastname-0").text("Introduzca nombre y apellido");
+	}*/
+	if(concept === ""){
+		$("div#transferenciaXpress #transfer-concept-0").addClass("orange-background");
+		$("div#transferenciaXpress #error-transfer-concept-0").text("Introduzca concepto");
+	}
+
+	/*if (numberDoc === "") {
+		$("div#transferenciaXpress #transfer-document1-0").addClass("orange-background");
+		$("div#transferenciaXpress #error-transfer-document1-0").text("Introduzca documento");
+	}*/
+
+	if (destinyAccount === "") {
+		$("#transferenciaXpress span.select2").addClass("orange-background");
+		$("div#transferenciaXpress #error-bank-destiny-0").text("Introduzca la cuenta destino");
+	}
+	if(entity === ""){
+		$("#transferenciaXpress #transferEntityXpress").addClass("orange-background");
+		$("div#transferenciaXpress #error-choose-entity-xpress-0").text("Seleccione una Entidad");
+	}
+
+	var height1 = $("div.step-2-left").height();
+	$("div.step-2-right").height(height1);
+
+}
+
+function calculateXpressComission(element){
+	var amount = element.val().replace(/\./g, '').replace(/,/g, '.');
+	var transferComission = $("#transfer-commission");
+	var comissionPercent = parseFloat($("#xpressComisionPorcentaje").val());
+	var comission = 0;
+	comission = (comission * comissionPercent) / 100;
+	var decimals = false;
+	if(currencyProduct === "GS"){
+		comission = parseInt(amount);
+		comission = parseInt(Math.round((comission * comissionPercent) / 100));
+		var commissionGs = parseInt($("#xpressComisionMinGs").val());
+		if(comission > commissionGs)
+			transferComission.val(comission)
+		else
+			transferComission.val(commissionGs)
+	}else{
+		comission = parseFloat(amount);
+		comission = parseFloat((comission * comissionPercent) / 100).toFixed(2);
+		decimals = true;
+		var commissionUsd = parseFloat($("#xpressComisionMinUsd").val());
+		if(comission > commissionUsd)
+			transferComission.val(comission.toString().replace(".",","))
+		else
+			transferComission.val(commissionUsd.toString().replace(".",","))
+	}
+	formatAmount(transferComission,decimals);
+
+}
+
+function showContacts(level) {
+	var destiny = $("#select-destiny-val").val();
+	$(".loader").removeClass("hidden");
+	$.ajax({
+		type: "POST",
+		url: appname + "/transfer/contacts",
+		data: {
+			destiny: destiny
+		}
+	}).done(function (data) {
+		$("#listSavedContacts").html(data);
+		$("#modalSavedContacts").modal('show');
+		var height = window.innerHeight - 168;
+		$("#listSavedContacts").css("max-height",height+"px");
+		$(".loader").addClass("hidden");
+		if(level == 2) {
+			if(destiny == "Otras Cuentas") {
+				$("#select-beneficiary-third option[value=" + NRO_ACCOUNT_DELETE + "]").remove();
+				let nroCuenta = $("#select-beneficiary-third").val();
+				if(nroCuenta.length > 0) {
+					$("#select2-select-beneficiary-third-container").text(nroCuenta);
+					setTimeout(function () {
+						$("#select2-select-beneficiary-third-container").text(nroCuenta);
+					},500);
+				}
+			} else if(destiny == "Otros Bancos SIPAP") {
+				$("#select-beneficiary-sipap-0 option[value=" + NRO_ACCOUNT_DELETE + "]").remove();
+				let nroCuenta = $("#select-beneficiary-sipap-0").val();
+				if(nroCuenta.length > 0) {
+					$("#select2-select-beneficiary-sipap-0-container").text(nroCuenta);
+					setTimeout(function () {
+						$("#select2-select-beneficiary-sipap-0-container").text(nroCuenta);
+					},500);
+				}
+			} else if(destiny == "COOPERATIVA") {
+				$("#select-beneficiary-coop option[value=" + NRO_ACCOUNT_DELETE + "]").remove();
+				let nroCuenta = $("#select-beneficiary-coop").val();
+				if(nroCuenta.length > 0) {
+					actualizarNroCuenta(nroCuenta)
+					setTimeout(function () {
+						var valor = $("#select-beneficiary-coop").val();
+						var coopPrefijo = $("#choose-entity-coop-0 option:selected").attr("prefijo");
+
+						if(coopPrefijo == undefined || coopPrefijo == "" || coopPrefijo == "0")
+							return;
+						if(valor == null || valor == undefined || valor == "0")
+							valor = "";
+						$("#select2-select-beneficiary-coop-container").text(coopPrefijo+valor);
+					},500);
+				}
+			} else if(destiny == "INTERNACIONAL") {
+				$("#select-beneficiary-international option[value=" + NRO_ACCOUNT_DELETE + "]").remove();
+				let nroCuenta = $("#select-beneficiary-international").val();
+				if(nroCuenta.length > 0) {
+					$("#select2-select-beneficiary-international-container").text(nroCuenta);
+					setTimeout(function () {
+						$("#select2-select-beneficiary-international-container").text(nroCuenta);
+					},500);
+				}
+			}
+		}
+	}).fail(function (request, status, error) {
+		var errorData = request.responseJSON;
+		$("#container-main").css('margin-top', '0px');
+		ajaxErrorHandler(errorData, status, error, "genericError");
+		$(".loader").addClass("hidden");
+	})
+}
+
+function deleteContact(beneficiario, nroCuenta) {
+	$("#spanDenominacion").text(beneficiario.capitalize());
+	$("#spanNroCuenta").text(nroCuenta);
+	$("#modalConfirmDelete").modal('toggle');
+	NRO_ACCOUNT_DELETE = nroCuenta;
+}
+
+function closeConfirmDelete() {
+	$("#modalConfirmDelete").modal('toggle');
+}
+
+function deleteContactConfirmed() {
+	$.ajax({
+		type: "POST",
+		url: appname + "/transfer/contacts/delete",
+		data: {
+			accountNumber: NRO_ACCOUNT_DELETE
+		}
+	}).done(function (data) {
+		$("#modalConfirmDelete").modal('hide');
+		$("#modalSavedContacts").modal('hide');
+		if(data.response.toString().toUpperCase() === "OK") {
+			setTimeout(function () {
+				showContacts(2);
+			},500);
+		}
+	}).fail(function (request, status, error) {
+		$("#modalConfirmDelete").modal('hide');
+	})
+}
+
+function searchContactsModal(){
+    var busqueda = $("#nroCuentaBeneficiariesModal").val();
+    var table = $("#tableList tbody tr");
+    var count = 0;
+    for(var i=0;i<table.length;i++){
+        var tdDenominacion = $(".tr-manual-pos-"+i+" td:eq(1)");  // Denominación
+        var tdCuenta = $(".tr-manual-pos-"+i+" td:eq(2)");        // Cuenta
+        var tdMoneda = $(".tr-manual-pos-"+i+" td:eq(3)");        // Moneda
+        var tdDocumento = $(".tr-manual-pos-"+i+" td:eq(4)");     // Documento
+        var tr = $(".tr-manual-pos-"+i);
+        
+        if(busqueda !== "") {
+            if(tdDenominacion.html().toUpperCase().indexOf(busqueda.toUpperCase()) > -1 ||
+                tdCuenta.html().toUpperCase().indexOf(busqueda.toUpperCase()) > -1 ||
+                tdMoneda.html().toUpperCase().indexOf(busqueda.toUpperCase()) > -1 ||
+                tdDocumento.html().toUpperCase().indexOf(busqueda.toUpperCase()) > -1
+            ){
+                tr.css("display","");
+            } else {
+                tr.css("display","none");
+                count++;
+            }
+        } else {
+            tr.css("display","");
+        }
+    }
+
+	if(busqueda !== "") {
+		if(count === table.length){
+			$("#tableAux").removeClass("hidden");
+			$("#tableList").addClass("hidden");
+		} else {
+			$("#tableAux").addClass("hidden");
+			$("#tableList").removeClass("hidden");
+		}
+	} else {
+		$("#tableAux").addClass("hidden");
+		$("#tableList").removeClass("hidden");
+	}
+
+}
+
+function loadContact(nroCuenta) {
+	var destiny = $("#select-destiny").val();
+	$("#modalSavedContacts").modal('hide');
+	if(destiny == "Otras Cuentas") {
+		$("#select-beneficiary-third").val(nroCuenta).trigger("change")
+		$("#select2-select-beneficiary-third-container").text(nroCuenta);
+		fillFieldsTransfer(nroCuenta, "TRANSFERENCIA_TERCEROS", $("#select-beneficiary-third"));
+
+	} else if(destiny == "Otros Bancos SIPAP") {
+		$("#select-beneficiary-sipap-0").val(nroCuenta).trigger("change")
+		$("#select2-select-beneficiary-sipap-0-container").text(nroCuenta);
+		fillFieldsTransfer(nroCuenta, "TRANSFERENCIA_SIPAP", null);
+
+	} else if(destiny == "COOPERATIVA") {
+		$("#account-number-select").val(nroCuenta)
+		console.log("Nro de cuenta a cargar ", nroCuenta)
+		$("#select-beneficiary-coop").val(nroCuenta).trigger("change")
+		actualizarNroCuenta(nroCuenta)
+		fillFieldsTransferCooperativaWithParam(nroCuenta, "TRANSFERENCIA_COOPERATIVA");
+
+	} else if(destiny == "INTERNACIONAL") {
+		$("#select-beneficiary-international").val(nroCuenta).trigger("change")
+		$("#select2-select-beneficiary-international-container").text(nroCuenta);
+		fillFieldsTransfer(nroCuenta, "TRANSFERENCIA_INTERNACIONAL", $("#select-beneficiary-international"));
+	}
+
+}
+
+function actualizarNroCuenta(nroCuenta){
+	var valor = nroCuenta;
+	var coopPrefijo = $("#choose-entity-coop-0 option:selected").attr("prefijo");
+
+	if(coopPrefijo == undefined || coopPrefijo == "" || coopPrefijo == "0")
+		return;
+	if(valor == null || valor == undefined || valor == "0")
+		valor = "";
+	$("#select2-select-beneficiary-coop-container").text(coopPrefijo+valor);
+}
+
+function validarCuentaCooperativaTransfer(nroCuenta){
+	hideErrorBlocksTransfer();
+	var coopPrefijo = $("#choose-entity-coop-0 option:selected").attr("prefijo");
+	var tipoDocumento = $("div#transferenciaCooperativa #choose-type-document-0 option:selected").attr("value");
+	var nroDocumento = $("div#transferenciaCooperativa #transfer-document1-0").val();
+	var idAfiliado = $("#choose-entity-coop-0 option:selected").attr("idAfiliado");
+	$.ajax({
+		type: "POST",
+		url: appname + "/account/coop",
+		data: {
+			idAfiliado: idAfiliado,
+			numberAccount: coopPrefijo+nroCuenta,
+			typeDocument: tipoDocumento,
+			document: nroDocumento
+		}
+	}).done(function (data) {
+	}).fail(function (request, status, error) {
+		var errorData = request.responseJSON;
+		ajaxErrorHandler(errorData, status, error, "genericError");
+		return false;
+	});
+}
+
+function fillFieldsTransferCooperativaWithParam(account,typeTransfer){
+	var typeSipap = $("#transfer-type").val();
+	$(".loader").removeClass("hidden");
+	$.ajax({
+		type: "POST",
+		url: appname + "/transfer/fill-fields",
+		data: {
+			account: account,
+			typeTransaction: typeTransfer,
+			typeSipap: typeSipap
+		}
+	}).done(function (data) {
+		$(".loader").addClass("hidden");
+		var obj = jQuery.parseJSON(data);
+		$("#select-beneficiary-coop").val(account);
+		console.log("Nro de cuenta a cargar desde fillFields ", account);
+		$("#select-beneficiary-coop").trigger("change");
+		console.log("Select value:", $("#select-beneficiary-coop").val());
+		$("#destiny-account-coop").val(account);
+		$("div#transferenciaCooperativa #choose-entity-coop-0").val(obj.entidad).change();
+		$("div#transferenciaCooperativa #choose-type-document-0").val(obj.tipoDocumento);
+		$("div#transferenciaCooperativa #transfer-document1-0").val(obj.nroDocumento);
+		$("div#transferenciaCooperativa #nameLastname-0").val(obj.beneficiario);
+		$("div#transferenciaCooperativa #choose-country").val(obj.paisDestino.codigoPais);
+		$("div#transferenciaCooperativa #choose-city").val(obj.ciudadDestino.codigoCiudad);
+		$("div#transferenciaCooperativa #transferCoinInt").val(obj.codigoMoneda);
+	}).fail(function (request, status, error) {
+		$(".loader").addClass("hidden");
+		var errorData = request.responseJSON;
+		ajaxErrorHandler(errorData, status, error, ID_GENERIC_ERROR);
+	})
+}

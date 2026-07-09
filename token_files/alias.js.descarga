@@ -1,0 +1,180 @@
+function emptyErrorMessages() {
+    $("#return-amount").removeClass("orange-background");
+    $("#error-return-amount").text("");
+
+    $("#choose-reason").removeClass("orange-background");
+    $("#error-choose-reason").text("");
+}
+
+/*Resetea los campos del paso 2 para poder volver al paso 1,
+* al dar sgte en el paso 1 de todos modos se realizan nuevas llamadas*/
+function goBackToStepOneAlias() {
+    let aliasValue = $("#select-alias option:eq(0)").val();
+    if (aliasValue !== "" && aliasValue !== undefined) {
+        $("#select-alias").val(aliasValue);
+        $("#select-alias").change();
+    }
+
+    $("#step-1").removeClass("hidden");
+    $("#step-2").addClass("hidden");
+    $("#step-3").addClass("hidden");
+    $("#step-4").addClass("hidden");
+
+    var height1 = $("div.step-1-left").height();
+    height1 = height1 + 20;
+    $("div.step-1-right").css('height', height1);
+}
+
+function goBackToStepTwoAlias() {
+    $("#step-1").addClass("hidden");
+    $("#step-2").removeClass("hidden");
+    $("#step-3").addClass("hidden");
+    $("#step-4").addClass("hidden");
+}
+
+function registerAlias(alias, typeAlias, account, typeAccount, money, action) {
+    $(".loader").removeClass("hidden");
+    $("#buttonRegisterAlias").attr("disabled", "disabled");
+
+    $.ajax({
+        type: "POST",
+        url: appname + "/cas/register",
+        data: {
+            nroCuenta: account,
+            tipoCuenta: typeAccount,
+            moneda: money,
+            alias: alias,
+            tipoAlias: typeAlias,
+            accion: action,
+        }
+    }).done(function (data) {
+        $(".loader").addClass("hidden");
+        $("#step-1").addClass("hidden");
+        $("#step-2").addClass("hidden");
+        $("#buttonRegisterAlias").removeAttr("disabled");
+        $("#step-3").html(data);
+        $("#step-3").removeClass("hidden");
+        $("#aliasRegister").text(aliasText);
+        $("#accountTextDestination").text(accountText);
+
+        var height3 = $("div.step-3-left").height();
+        height3 = height3 + 20;
+        $("div.step-3-right").css('height', height3);
+
+    }).fail(function (request, status, error) {
+        $(".loader").addClass("hidden");
+        $("#buttonRegisterAlias").removeAttr("disabled");
+        var errorData = request.responseJSON;
+        $("#container-main").css('margin-top', '0px');
+        ajaxErrorHandler(errorData, status, error, "genericError");
+    })
+}
+
+function confirmTransactionAlias(clave, token, keyAproval, action) {
+    $(".loader").removeClass("hidden");
+    $("#step-3 #btnConfirmOperation").attr("disabled", "disabled");
+    $.ajax({
+        type: "POST",
+        url: appname + "/cas/confirm",
+        data: {
+            dinamicKey: clave,
+            tokenTransferAproved: token,
+            keyAproval: keyAproval,
+            action: action,
+        }
+    }).done(function (data) {
+        if (action === 'F') {
+            $(".loader").addClass("hidden");
+            $("#step-1").addClass("hidden");
+            $("#step-2").addClass("hidden");
+            $("#step-3").addClass("hidden");
+            $("#step-3 #buttonReadyToTransfer").removeAttr("disabled");
+            $("#step-4").html(data);
+            $("#step-4").removeClass("hidden");
+            $("#aliasRegisterStep4").text(aliasText);
+            $("#accountTextDestinationStep4").text(accountText);
+
+            var height42 = $("div.step-41-left").height();
+            height42 = height42 + 20;
+            $("div.step-41-right").css('height', height42);
+        }else if( action == 'P'){
+            window.location.href = appname + "/cas";
+        }
+
+    }).fail(function (request, status, error, response) {
+        $(".loader").addClass("hidden");
+        if (action === 'F') {
+            $("#step-1").addClass("hidden");
+            $("#step-2").addClass("hidden");
+            $("#step-3").removeClass("hidden");
+            $("#step-4").addClass("hidden");
+            $("#step-3 #btnConfirmOperation").removeAttr("disabled");
+            console.log(request);
+            console.log(error);
+            console.log(status);
+            $("#container-main").css('margin-top', '0px');
+            var errorData = request.responseJSON;
+            console.log(errorData);
+            ajaxErrorHandler(errorData, status, error, "genericError");
+        } else if (action === 'P') {
+            $("#modalActionAlias").modal("hide");
+            var errorData = request.responseJSON;
+            $("#container-main").css('margin-top', '0px');
+            ajaxErrorHandler(errorData, status, error, "genericError");
+        }
+
+    })
+}
+
+function addNewAlias() {
+    var $form = $('<form>', {
+        action: appname + '/cas/form',
+        method: 'post',
+    })
+    $form.appendTo('body').submit();
+}
+function changeVinculateAlias(alias){
+    var fields = {
+        alias: alias
+    }
+    var $form = $('<form>', {
+        action: appname + '/cas/change-vinculate',
+        method: 'post'
+    }).append(
+        $.map(fields, function (val, key) {
+            return $('<input>').attr({
+                type: "hidden",
+                name: key,
+                value: val
+            })
+        })
+    )
+    $form.appendTo('body').submit();
+}
+
+function changeStatusAlias(id, action) {
+    $(".loader").removeClass("hidden");
+    $("#modalActionAlias-" + id + " #status-alias").attr("disabled", "disabled");
+    $.ajax({
+        type: "POST",
+        url: appname + "/cas/change-status",
+        data: {
+            nroCuenta: id,
+            accion: action,
+        }
+    }).done(function (data) {
+        $(".loader").addClass("hidden");
+        $("#modalActionAlias-" + id + " #status-alias").addClass("hidden");
+        $("#modalActionAlias-" + id + " #delete-alias").addClass("hidden");
+        $("#modalActionAlias-" + id + " #cancelar").addClass("hidden");
+        $("#modalActionAlias-" + id + " #modal-title").html(data);
+        $("#modalActionAlias-" + id + " #span-title-auth-detail").text("Clave");
+    }).fail(function (request, status, error) {
+        console.log(error)
+        $(".loader").addClass("hidden");
+        $("#modalActionAlias-" + id ).modal("hide");
+        var errorData = request.responseJSON;
+        $("#container-main").css('margin-top', '0px');
+        ajaxErrorHandler(errorData, status, error, "genericError");
+    })
+}

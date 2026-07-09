@@ -1,0 +1,257 @@
+function showHideLabelReason(element){
+    var parent = element.parentElement.parentElement.parentElement.parentElement.parentElement.getAttribute("id");
+    var selectedReason = element.value;
+    if(selectedReason === "0"){
+        $("div#"+parent+" #label-for-choose-reason").addClass("hidden");
+    }else{
+        $("div#"+parent+" #label-for-choose-reason").removeClass("hidden");
+    }
+}
+
+function emptyErrorMessages() {
+    $("#return-amount").removeClass("orange-background");
+    $("#error-return-amount").text("");
+
+    $("#choose-reason").removeClass("orange-background");
+    $("#error-choose-reason").text("");
+}
+
+function loadReasonsReturn(type){
+    console.log("Tipo solicitado ", type)
+    $(".loader").removeClass("hidden");
+    $.ajax({
+        type: "GET",
+        url: appname + "/devolution/reasons",
+    }).done(function (data) {
+        $(".loader").addClass("hidden");
+        $("#reason-div").html(data);
+        numberProduct = $("#numberProduct option:selected").val();
+        currencyProduct = $("#numberProduct option:selected").attr("data-currency");
+
+        if (numberProduct != "0") {
+            $("#step-1").addClass("hidden");
+            $("#step-2").removeClass("hidden");
+            $("#step-3").addClass("hidden");
+            $("#step-4").addClass("hidden");
+
+            if (currencyProduct === 'GS')
+                $(".transfer-ammount").attr('data-decimals', false);
+            else
+                $(".transfer-ammount").attr('data-decimals', true);
+
+            $("#coinDevolution").val(currencyProduct);
+
+            var height1 = $("div.step-21-left").height();
+            height1 = height1 + 20;
+            $("div.step-1-right").css('height', height1);
+
+            var height2 = $("div.step-2-left").height();
+            height2 = height2 + 20;
+            $("div.step-2-right").css('height', height2);
+
+
+            productText = $("#numberProduct option:selected").text();
+
+            $('#numberCuenta ').text(productText);
+
+            $("#nextButtonDestiny").addClass("hidden");
+
+        } else {
+            let msg;
+            if(type == 'D') {
+                msg = 'Seleccione una Transferencia para devolver';
+            } else {
+                msg = 'Seleccione una Transferencia para solicitar';
+            }
+
+            $("#fullfillError").hide();
+            $("#fullfillError").show();
+            $("#fullfillError").removeClass("hidden");
+            $("#msg").text(msg);
+
+            $("#container-main").removeClass("content-main");
+        }
+
+        var height1 = $("div.step-21-left").height();
+        height1 = height1 + 20;
+        $("div.step-1-right").css('height', height1);
+
+        var height2 = $("div.step-2-left").height();
+        height2 = height2 + 20;
+        $("div.step-2-right").css('height', height2);
+
+
+    }).fail(function (request, status, error) {
+        $(".loader").addClass("hidden");
+        var errorData = request.responseJSON;
+        ajaxErrorHandler(errorData, status, error, "genericError");
+
+    });
+}
+
+function goBackToStepTwoReturn() {
+    $("#step-1").addClass("hidden");
+    $("#step-2").removeClass("hidden");
+    $("#step-3").addClass("hidden");
+    $("#step-4").addClass("hidden");
+}
+
+function registerTransferReturn(numberProduct, amount, reason, reasonDesc) {
+    $(".loader").removeClass("hidden");
+    $("#buttonRegisterReturn").attr("disabled","disabled");
+    $.ajax({
+        type: "POST",
+        url: appname + "/devolution/register",
+
+        data: {
+            numberProduct: numberProduct,
+            amount: amount,
+            reason: reason,
+            reasonDesc: reasonDesc,
+        }
+    }).done(function (data) {
+        $(".loader").addClass("hidden");
+        $("#step-1").addClass("hidden");
+        $("#step-2").addClass("hidden");
+        $("#buttonRegisterReturn").removeAttr("disabled");
+        $("#step-3").html(data);
+        $("#step-3").removeClass("hidden");
+        $("#numberCuentaRegister").text(productText);
+        $("#productTextDestination").text(productTextDestination);
+
+        var height3 = $("div.step-3-left").height();
+        height3 = height3 + 20;
+        $("div.step-3-right").css('height', height3);
+
+    }).fail(function (request, status, error) {
+        $(".loader").addClass("hidden");
+        $("#buttonRegisterReturn").removeAttr("disabled");
+        var errorData = request.responseJSON;
+        $("#container-main").css('margin-top', '0px');
+        ajaxErrorHandler(errorData, status, error, "genericError");
+    })
+}
+
+function confirmTransaction(clave, token, keyAproval) {
+    $(".loader").removeClass("hidden");
+    $("#step-3 #btnConfirmOperation").attr("disabled","disabled");
+    $.ajax({
+        type: "POST",
+        url: appname + "/devolution/confirm",
+        data: {
+            dinamicKey: clave,
+            tokenTransferAproved: token,
+            keyAproval: keyAproval
+        }
+    }).done(function (data) {
+        $(".loader").addClass("hidden");
+        $("#step-1").addClass("hidden");
+        $("#step-2").addClass("hidden");
+        $("#step-3").addClass("hidden");
+        $("#step-3 #buttonReadyToTransfer").removeAttr("disabled");
+        $("#step-4").html(data);
+        $("#step-4").removeClass("hidden");
+        $("#numberCuentaConfirm").text(productText);
+        $("#numberCuentaConfirmDestination").text(productTextDestination);
+
+        var height42 = $("div.step-41-left").height();
+        height42 = height42 + 20;
+        $("div.step-41-right").css('height', height42);
+
+    }).fail(function (request, status, error, response) {
+        $(".loader").addClass("hidden");
+        $("#step-1").addClass("hidden");
+        $("#step-2").addClass("hidden");
+        $("#step-3").removeClass("hidden");
+        $("#step-4").addClass("hidden");
+        $("#step-3 #btnConfirmOperation").removeAttr("disabled");
+        console.log(request);
+        console.log(error);
+        console.log(status);
+        $("#container-main").css('margin-top', '0px');
+        var errorData = request.responseJSON;
+        console.log(errorData);
+        ajaxErrorHandler(errorData, status, error, "genericError");
+
+    })
+}
+
+function downloadTransferReturnReport(identifier) {
+    var params = 'devolutionIdentifier=' + identifier;
+    var req = new XMLHttpRequest();
+    req.open("POST", appname + "/devolution/pdfdevolution", true);
+    req.responseType = "blob";
+    req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    req.onload = function () {
+        if(req.status === 200){
+            var blob = req.response;
+            var fileName = 'devolucion' + '-' + identifier + '.pdf';
+            downloadAllReport(blob, fileName);
+        }else{
+            showModalGenericError("Error al generar el Comprobante");
+        }
+
+
+    };
+    req.send(params);
+}
+
+function downloadTransferRequestReturnReport(identifier) {
+    var params = 'devolutionIdentifier=' + identifier;
+    var req = new XMLHttpRequest();
+    req.open("POST", appname + "/devolution/pdfdevolution", true);
+    req.responseType = "blob";
+    req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    req.onload = function () {
+        if(req.status === 200){
+            var blob = req.response;
+            var fileName = 'solicitud-devolucion' + '-' + identifier + '.pdf';
+            downloadAllReport(blob, fileName);
+        }else{
+            showModalGenericError("Error al generar el Comprobante");
+        }
+
+
+    };
+    req.send(params);
+}
+
+function confirmTransactionRequest(clave, token, keyAproval,productText ,numberCuenta) {
+    $(".loader").removeClass("hidden");
+    $("#step-3 #btnConfirmOperation").attr("disabled","disabled");
+    $.ajax({
+        type: "POST",
+        url: appname + "/devolution/confirm",
+        data: {
+            dinamicKey: clave,
+            tokenTransferAproved: token,
+            keyAproval: keyAproval
+        }
+    }).done(function (data) {
+        $(".loader").addClass("hidden");
+        $("#step-3").addClass("hidden");
+        $("#step-3 #buttonReadyToTransfer").removeAttr("disabled");
+        $("#step-4").html(data);
+        $("#step-4").removeClass("hidden");
+
+
+        $("#numberCuentaConfirm").text(productText);
+        $("#numberCuentaConfirmDestination").text(numberCuenta);
+
+        var height42 = $("div.step-41-left").height();
+        height42 = height42 + 20;
+        $("div.step-41-right").css('height', height42);
+
+    }).fail(function (request, status, error, response) {
+        $(".loader").addClass("hidden");;
+        $("#btnConfirmOperation").removeAttr("disabled");
+        console.log(request);
+        console.log(error);
+        console.log(status);
+        $("#container-main").css('margin-top', '0px');
+        var errorData = request.responseJSON;
+        console.log(errorData);
+        ajaxErrorHandler(errorData, status, error, "genericError");
+
+    })
+}
