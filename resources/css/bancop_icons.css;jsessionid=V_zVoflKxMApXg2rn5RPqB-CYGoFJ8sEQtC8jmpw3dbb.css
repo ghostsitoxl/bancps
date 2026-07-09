@@ -1,0 +1,2086 @@
+.icon-bancop{
+	background: url('../images/bancop_icon.png') no-repeat center center;
+	background-size: 80%;
+    display: inline-block;
+    width: 60%;
+    height: 100%;
+}
+.icon-number-document{
+	background: url('../images/icons/icon_number_document.png') no-repeat center center;
+	display: inline-block;
+	width: 20px;
+	height: 20px;
+	vertical-align: text-bottom;
+}
+.icon-number-document-white{
+	background: url('../images/icons/icon_number_document_white.png') no-repeat center center;
+	display: inline-block;
+	width: 20px;
+	height: 20px;
+	vertical-align: text-bottom;
+}
+.icon-access{
+	background: url('../images/icons/icon_access.png') no-repeat center center;
+	display: inline-block;
+	width: 20px;
+	height: 20px;
+	vertical-align: text-bottom;	
+    margin-bottom: 4px;	
+}
+.icon-key
+{
+	background: url('../images/icons/icon_key.png') no-repeat center center;
+	display: inline-block;
+	width: 20px;
+	height: 20px;
+	vertical-align: text-bottom;
+}
+.icon-key-orange
+{
+	background: url('../images/icons/icon_key_orange.png') no-repeat center center;
+	display: inline-block;
+	width: 20px;
+	height: 20px;
+	vertical-align: text-bottom;
+}
+.icon-key-blue
+{
+	background: url('../images/icons/icon_key_blue.png') no-repeat center center;
+	display: inline-block;
+	width: 20px;
+	height: 20px;
+	vertical-align: text-bottom;
+}
+.icon-key-white
+{
+	background: url('../images/icons/icon_key_white.png') no-repeat center center;
+	display: inline-block;
+	width: 20px;
+	height: 20px;
+	vertical-align: text-bottom;
+}
+.icon-number-ruc
+{
+	background: url('../images/icons/icon_number_ruc.png') no-repeat center center;
+	display: inline-block;
+	width: 20px;
+	height: 20px;
+	vertical-align: text-bottom;
+}
+.icon-number-ruc-white
+{
+	background: url('../images/icons/icon_number_ruc_white.png') no-repeat center center;
+	display: inline-block;
+	width: 20px;
+	height: 20px;
+	vertical-align: text-bottom;
+}
+.iso-type-business
+{
+	background: url('../images/iso_type_business.html') no-repeat center center;
+	/* background-size: 73%; */
+	/* background-size: 66%;  */
+	/* background-size: 60%; */
+	   /*  margin-top: 100px; */
+   /*  display: inline-block;
+    width: 60%;
+    height: 100%; */
+    width: 397px;
+    height: 634px;
+}
+.iso-type-customer
+{
+	background: url('../images/iso_type_custom.html') no-repeat center center;
+	background-size: 73%;
+	/* background-size: 66%;  */
+	/* background-size: 60%; */
+	   /*  margin-top: 100px; */
+   /*  display: inline-block;
+    width: 60%;
+    height: 100%; */
+}
+.icon-change
+{
+	background: url('../images/icons/icon_change.png') no-repeat center center;
+	display: inline-block;
+	width: 42px;
+	height: 42px;
+	vertical-align: text-bottom;
+	margin-right: 15px;
+	margin-left: 15px;
+	padding-right: 35px;
+	margin-top: 15px;
+}
+.icon-close-blue
+{
+	background: url('../images/icons/icon_close_blue.png') no-repeat center center;
+	display: inline-block;
+	width: 25px;
+	height: 25px;
+	vertical-align: text-bottom;
+	border-radius: 0px 0px 2px 2px;
+}
+.icon-close-orange
+{
+	background: url('../images/icons/icon_close_orange.png') no-repeat center center;
+	display: inline-block;
+	width: 30px;
+	height: 30px;
+	vertical-align: text-bottom;
+	border-radius: 0px 0px 2px 2px;
+}
+.icon-close-white
+{
+	background: url('../images/icons/icon_close_white.png') no-repeat center center !important;
+	display: inline-block;
+	width: 20px;
+	height: 20px;
+	vertical-align: text-bottom;
+	border-radius: 0px 0px 2px 2px;
+}
+
+.icon-close-white.message-box
+{
+	position: absolute;
+	top: 8px;
+	right: 15px;
+}
+.icon-close-white-product
+{
+	background: url('../images/icons/icon_close_white_product.png') no-repeat center center;
+	display: inline-block;
+	width: 20px;
+	height: 20px;
+	vertical-align: text-bottom;
+	border-radius: 0px 0px 2px 2px;
+	cursor: pointer;
+}
+
+.icon-message-title {
+	display: inline-block;
+	width: 25px;
+	height: 25px;
+	vertical-align: text-top;	
+	margin-right: 15px;	
+}
+
+.icon-notification
+{
+	background: url('../images/icons/icon_notification.png') no-repeat center center;
+	display: inline-block;
+	width: 30px;
+	height: 30px;
+	vertical-align: text-bottom;
+}
+.icon-login
+{
+	background: url('../images/icons/icon_login.png') no-repeat center center;
+	display: inline-block;
+	width: 20px;
+	height: 20px;
+	vertical-align: text-bottom;	
+    margin-bottom: 3px;   
+    margin-left: 3px;
+	
+}
+.icon-alert
+{
+	background: url('../images/icons/icon_alert.png') no-repeat center center;
+	display: inline-block;
+	width: 32px;
+	height: 30px;
+	vertical-align: text-bottom;
+}
+.image-dashboard
+{
+	background: #fff url(../images/image_dashboard.jpg) no-repeat center fixed;
+	background-size: cover;
+}
+.icon-cards
+{
+	background: url('../images/icons/ICONO_Menu_Tarjetas_Blanco.png') no-repeat center center;
+	display: inline-block;
+	width: 57px;
+	height: 53px;
+	vertical-align: text-bottom;
+}
+.icon-accounts
+{
+	background: url('../images/icons/icon_accounts.html') no-repeat center center;
+	display: inline-block;
+	width: 50px;
+	height: 53px;
+	vertical-align: text-bottom;
+}
+.icon-loans
+{
+	background: url('../images/icons/ICONO_Menu_Prestamos_Blanco.png') no-repeat center center;
+	display: inline-block;
+	width: 66px;
+	height: 53px;
+	vertical-align: text-bottom;
+}
+.icon-options
+{
+	background: url('../images/icons/icon_options.png') no-repeat center center;
+	display: inline-block;
+	width: 53px;
+	height: 53px;
+	vertical-align: text-bottom;
+}
+.icon-business
+{
+	background: url('../images/icons/icon_business.png') no-repeat center center;
+	display: inline-block;
+	width: 42px;
+	height: 53px;
+	vertical-align: text-bottom;
+}
+.icon-cdas
+{
+	background: url('../images/icons/icon_cdas.html') no-repeat center center;
+	display: inline-block;
+	width: 66px;
+	height: 53px;
+	vertical-align: text-bottom;
+}
+.icon-logout-white
+{
+	background: url('../images/icons/icon_logout_white.png') no-repeat center center;
+	display: inline-block;
+	width: 30px;
+	height: 30px;
+	vertical-align: text-bottom;
+	border-radius: 0px 0px 2px 2px;
+}
+.icon-logout-orange
+{
+	background: url('../images/icons/icon_logout_orange.png') no-repeat center center;
+	display: inline-block;
+	width: 30px;
+	height: 30px;
+	vertical-align: text-bottom;
+	border-radius: 0px 0px 2px 2px;
+}
+.icon-logout-white:hover
+{
+	background: url('../images/icons/icon_logout_orange.png') no-repeat center center;
+	display: inline-block;
+	width: 30px;
+	height: 30px;
+	vertical-align: text-bottom;
+	border-radius: 0px 0px 2px 2px;
+}
+.icon-submenu-movements
+{
+	background: url('../images/icons/icon_submenu_movements.png') no-repeat center center;
+	display: inline-block;
+	width: 32px;
+	height: 30px;
+	vertical-align: middle;
+	 margin-right: 0px;	
+}
+.icon-submenu-checks
+{
+	background: url('../images/icons/icon_submenu_checks.png') no-repeat center center;
+	display: inline-block;
+	width: 47px;
+	height: 30px;
+	vertical-align: middle;
+	 margin-right: 0px;	
+}
+.icon-submenu-deposits-to-confirmed
+{
+	background: url('../images/icons/icon_submenu_deposits_confirmed.png') no-repeat center center;
+	display: inline-block;
+	width: 33px;
+	height: 30px;
+	vertical-align: middle;	
+    margin-right: 0px;	
+}
+.icon-submenu-request-extracts-mail
+{
+	background: url('../images/icons/icon_submenu_request_extracts_mail.png') no-repeat center center;
+	display: inline-block;
+	width: 33px;
+	height: 30px;
+	vertical-align: middle;	
+    margin-right: 0px;	
+}
+.icon-request-extracts-mail-blue
+{
+	background: url('../images/icons/icon_request_extracts_mail_blue.png') no-repeat center center;
+	display: inline-block;
+	width: 53px;
+	height: 53px;
+	vertical-align: text-bottom;	
+	margin-right: 15px;	
+}
+
+.icon-submenu-pay
+{
+	background: url('../images/icons/icon_submenu_pay.png') no-repeat center center;
+	display: inline-block;
+	width: 46px;
+	height: 30px;
+	vertical-align: middle;	
+    margin-right: 0px;	
+}
+.icon-submenu-operation-without-card
+{
+	background: url('../images/icons/icon_submenu_operation_without_card.png') no-repeat center center;
+	display: inline-block;
+	width: 34px;
+	height: 31px;
+	vertical-align: middle;	
+    margin-right: 0px;	
+}
+.icon-submenu-detail
+{
+	background: url('../images/icons/icon_submenu_detail.png') no-repeat center center;
+	display: inline-block;
+	width: 29px;
+	height: 30px;
+	vertical-align: middle;	
+    margin-right: 0px;	
+}
+.icon-submenu-automatization
+{
+	background: url('../images/icons/icon_submenu_automatization.png') no-repeat center center;
+	display: inline-block;
+	width: 45px;
+	height: 30px;
+	vertical-align: text-top;	
+    margin-right: 0px;	
+}
+.icon-submenu-profile
+{
+	background: url('../images/icons/icon_submenu_profile.png') no-repeat center center;
+	display: inline-block;
+	width: 24px;
+	height: 30px;
+	vertical-align: middle;	
+    margin-right: 0px;	
+}
+.icon-submenu-notification
+{
+	background: url('../images/icons/icon_submenu_notification.png') no-repeat center center;
+	display: inline-block;
+	width: 28px;
+	height: 31px;
+	vertical-align: text-top;	
+    margin-right: 0px;	
+}
+.icon-submenu-devices
+{
+	background: url('../images/icons/devices/MyDevicesBLANCOmdpi.png') no-repeat center center;
+	display: inline-block;
+	width: 28px;
+	height: 31px;
+	vertical-align: text-top;
+	margin-right: 0px;
+}
+.icon-submenu-change-passwoard
+{
+	background: url('../images/icons/icon_submenu_change_passwoard.png') no-repeat center center;
+	display: inline-block;
+	width: 28px;
+	height: 30px;
+	vertical-align: middle;	
+    margin-right: 0px;	
+}
+.icon-submenu-invoices
+{
+	background: url('../images/icons/icon-invoice-menu.png') no-repeat center center;
+	display: inline-block;
+	width: 24px;
+	height: 30px;
+	vertical-align: middle;	
+    margin-right: 0px;	
+}
+.icon-submenu-payment-salary
+{
+	background: url('../images/icons/icon_submenu_payment_salary.png') no-repeat center center;
+	display: inline-block;
+	width: 42px;
+	height: 30px;
+	vertical-align: middle;	
+    margin-right: 0px;	
+}
+.icon-submenu-admin-users
+{
+	background: url('../images/icons/admin/icon_submenu_admin_users.png') no-repeat center center;
+	display: inline-block;
+	width: 41px;
+	height: 41px;
+	vertical-align: middle;
+	margin-right: 0px;
+}
+.icon-submenu-payment-provider
+{
+	background: url('../images/icons/icon_submenu_payment_provider.png') no-repeat center center;
+	display: inline-block;
+	width: 31px;
+	height: 30px;
+	vertical-align: middle;	
+    margin-right: 0px;	
+}
+.icon-submenu-autorizations
+{
+	background: url('../images/icons/icon_submenu_autorizations.png') no-repeat center center;
+	display: inline-block;
+	width: 32px;
+	height: 30px;
+	vertical-align: middle;	
+    margin-right: 0px;	
+}
+.icon-direct-access-checkboocks
+{
+	background: url('../images/icons/icon_direct_access_checkbooks.png') no-repeat center center;
+	display: inline-block;
+	width: 47px;
+	height: 30px;
+	vertical-align: middle;
+	 margin-right: 0px;	
+	 border: 1px solid white;
+}
+.icon-direct-access-returned-checks
+{
+	background: url('../images/icons/icon_direct_access_returned_checks.png') no-repeat center center;
+	display: inline-block;
+	width: 47px;
+	height: 30px;
+	vertical-align: middle;
+	 margin-right: 0px;	
+	 border: 1px solid white;
+}
+.icon-direct-access-returned-checks
+{
+	background: url('../images/icons/icon_direct_access_returned_checks.png') no-repeat center center;
+	display: inline-block;
+	width: 47px;
+	height: 30px;
+	vertical-align: middle;
+	margin-right: 0px;
+	border: 1px solid white;
+}
+.icon-direct-access-checks
+{
+	background: url('../images/icons/icon_direct_access_checks.png') no-repeat center center;
+	display: inline-block;
+	width: 47px;
+	height: 30px;
+	vertical-align: middle;
+	 margin-right: 0px;	
+	 border: 1px solid white;
+}
+.icon-direct-access-transferences
+{
+	background: url('../images/icons/icon_direct_access_trasnferences.png') no-repeat center center;
+	display: inline-block;
+	width: 34px;
+	height: 28px;
+	vertical-align: text-bottom;	
+    margin-right: 10px;	
+    margin-left: 10px;	
+}
+
+.icon-direct-access-conciliation {
+	background: url('../images/icons/icon_direct_access_conciliation.png') no-repeat center center;
+	display: inline-block;
+	width: 34px;
+	height: 28px;
+	vertical-align: text-bottom;
+	margin-right: 10px;
+	margin-left: 10px;
+}
+
+.icon-direct-access-details-request
+{
+	background: url('../images/icons/icon_direct_access_devolution.png') no-repeat center center;
+	display: inline-block;
+	width: 34px;
+	height: 28px;
+	vertical-align: text-bottom;
+	margin-right: 10px;
+	margin-left: 10px;
+}
+
+
+.icon-direct-access-payment-services
+{
+	background: url('../images/icons/icon_direct_access_payment_services.png') no-repeat center center;
+	display: inline-block;
+	width: 34px;
+	height: 28px;
+	vertical-align: text-bottom;	
+    margin-right: 10px;	
+    margin-left: 10px;	
+}
+.icon-direct-access-payment-ips
+{
+	background: url('../images/icons/icon_option_account_payment_ips.png') no-repeat center center;
+	display: inline-block;
+	width: 39px;
+	height: 28px;
+	vertical-align: text-bottom;	
+    margin-right: 10px;	
+    margin-left: 10px;	
+}
+.icon-direct-access-payment-set
+{
+	background: url('../images/icons/icon_direct_access_payment_SET.png') no-repeat center center;
+	display: inline-block;
+	width: 34px;
+	height: 28px;
+	vertical-align: text-bottom;	
+    margin-right: 10px;
+    margin-left: 10px;		
+}
+.icon-direct-access-cotizations
+{
+	background: url('../images/icons/icon_direct_access_cotizations.png') no-repeat center center;
+	display: inline-block;
+	width: 34px;
+	height: 28px;
+	vertical-align: text-bottom;	
+    margin-right: 10px;	
+    margin-left: 10px;	
+}
+.icon-direct-access-ost
+{
+	background: url('../images/icons/icon_direct_access_ost.png') no-repeat center center;
+	display: inline-block;
+	width: 34px;
+	height: 28px;
+	vertical-align: text-bottom;
+	margin-right: 10px;
+	margin-left: 10px;
+}
+.icon-direct-access-payment-custom
+{
+	background: url('../images/icons/icon_direct_access_payment_custom.png') no-repeat center center;
+	display: inline-block;
+	width: 50px;
+	height: 28px;
+	vertical-align: text-bottom;	
+    margin-right: 10px;
+    margin-left: 10px;		
+}
+.icon-pending-authorizations
+{
+	background: url('../images/icons/icon_pending_authorizations.png') no-repeat center center;
+	display: inline-block;
+	width: 20px;
+	height: 20px;
+	vertical-align: text-bottom;	
+	margin-right: 5px;	
+}
+.style-icon-orange
+{
+	width: 20px;
+	height: 20px;
+	margin-left: 20px;
+}
+.icon-saving-bank
+{
+	background: url('../images/icons/icon_saving_bank_larger.png') no-repeat center center;
+	display: inline-block;
+	width: 53px;
+	height: 42px;
+	vertical-align: text-bottom;	
+	margin-right: 5px;	
+}
+.icon-credit-card
+{
+	background: url('../images/icons/icon_credit_card_larger.png') no-repeat center center;
+	display: inline-block;
+	width: 53px;
+	height: 42px;
+	vertical-align: text-bottom;	
+	margin-right: 5px;	
+}
+.icon-current-account
+{
+	background: url('../images/icons/icon_current_account_larger.png') no-repeat center center;
+	display: inline-block;
+	width: 53px;
+	height: 42px;
+	vertical-align: text-bottom;	
+	margin-right: 5px;	
+}
+.icon-cda-gray
+{
+	background: url('../images/icons/icon_cda_grey_larger.png') no-repeat center center;
+	display: inline-block;
+	width: 53px;
+	height: 42px;
+	vertical-align: text-bottom;	
+	margin-right: 5px;	
+}
+.icon-loan-gray
+{
+	background: url('../images/icons/icon_loan_grey_larger.png') no-repeat center center;
+	display: inline-block;
+	width: 53px;
+	height: 42px;
+	vertical-align: text-bottom;	
+	margin-right: 5px;	
+}
+
+.icon-loan-grey-medium
+{
+	position: relative;
+	left: 25%;
+	background: url('../images/icons/icon_loan_grey_medium_large.png') no-repeat center center;
+	background-size: contain;
+	display: inline-block;
+	width: 50%;
+	height: 100%;
+	vertical-align: text-bottom;
+	margin-right: 5px;
+}
+
+.icon-loan-grey-large
+{
+	position: relative;
+	left: 25%;
+	background: url('../images/icons/icon_loan_grey_extra_large.png') no-repeat center center;
+	background-size: contain;
+	display: inline-block;
+	width: 50%;
+	height: 100%;
+	vertical-align: text-bottom;
+	margin-right: 5px;
+}
+
+.icon-hard-token
+{
+	background: url('../images/icons/icon_hard_token.png') no-repeat center center;
+	display: inline-block;
+	width: 93px;
+	height: 44px;
+	vertical-align: text-bottom;	
+	margin-right: 5px;	
+	position: absolute;
+}
+.icon-second-factor
+{
+	background: url('../images/icons/icon_second_factor.png') no-repeat center center;
+	display: inline-block;
+	width: 82px;
+	height: 35px;
+	vertical-align: text-bottom;	
+	margin-right: 15px;	
+}
+.icon-arrow-left-orange
+{
+	background: url('../images/icons/icon_arrow_left_orange.png') no-repeat center center;
+	display: inline-block;
+	width: 36px;
+	height: 26px;
+	vertical-align: text-bottom;	
+	margin-right: 5px;	
+	position: relative;
+	margin-left: 80px;
+	margin-top: 12px;
+}
+.icon-logo-entrust
+{
+	background: url('../images/icons/%c3%83%c2%8dcono-IOS.html') no-repeat center center;
+	display: inline-block;
+	width: 51px;
+	height: 51px;
+	vertical-align: text-bottom;	
+	margin-right: 5px;	
+	position: absolute;
+	border-radius: 10px;
+}
+.icon-pin-entrust
+{
+	background: url('../images/icons/IMG_5032.html') no-repeat center center;
+	display: inline-block;
+	width: 104px;
+	height: 124px;
+	vertical-align: text-bottom;	
+	margin-right: 5px;	
+	position: absolute;
+	background-size:cover;
+}
+.icon-token-bancop
+{
+	background: url('../images/icons/Token.png') no-repeat center center;
+	width: 20px;
+	height: 20px;
+	float: right;
+	background-size: cover;
+	margin-top: 0px;
+	margin-left: 7px;
+	position: fixed;
+	margin-bottom: 148px;
+}
+.icon-pin-token
+{
+	background: url('../images/icons/IMG_5031.html') no-repeat center center;
+	width: 104px;
+	height: 124px;
+	vertical-align: text-bottom;
+	margin-right: 5px;
+	position: absolute;
+	background-size:cover;
+}
+.icon-number-token
+{
+	background: url('../images/icons/IMG_5033.html') no-repeat center center;
+	display: inline-block;
+	width: 104px;
+	height: 124px;
+	vertical-align: text-bottom;	
+	margin-right: 5px;	
+	position: absolute;
+	background-size:cover;
+}
+.icon-data-actualization
+{
+	background: url('../images/icons/icon_data_actualization.png') no-repeat center center;
+	display: inline-block;
+	width: 35px;
+	height: 35px;
+	vertical-align: text-bottom;	
+	margin-right: 15px;	
+}
+.icon-small-data-actualization
+{
+	background: url('../images/icons/icon_small_data_actualization.png') no-repeat center center;
+	margin-right: 10px;
+}
+.icon-data-verification
+{
+	background: url('../images/icons/icon_data_verification.png') no-repeat center center;
+	display: inline-block;
+	width: 20px;
+	height: 21px;
+	vertical-align: text-bottom;	
+	/* margin-right: 15px;	 */
+}
+.icon-data-verification-devolution
+{
+	background: url('../images/icons/check_devolution.png') no-repeat center center;
+	display: inline-block;
+	width: 20px;
+	height: 21px;
+	vertical-align: text-bottom;
+	/* margin-right: 15px;	 */
+}
+
+.icon-option-delete-historical {
+	background: url('../images/icons/reject_devolution.png') no-repeat center center;
+	display: inline-block;
+	width: 20px;
+	height: 21px;
+	vertical-align: middle;
+}
+.icon-devolution-request {
+	background: url('../images/icons/in.png') no-repeat center center;
+	display: inline-block;
+	width: 20px;
+	height: 21px;
+	vertical-align: middle;
+}
+
+.icon-devolution-sent {
+	background: url('../images/icons/out.png') no-repeat center center;
+	display: inline-block;
+	width: 20px;
+	height: 21px;
+	vertical-align: middle;
+}
+/* Iconos CAS */
+.icon-vinculate-alias {
+	background: url('../images/icons/vincular.png') no-repeat center center;
+	display: inline-block;
+	width: 40px;
+	height: 40px;
+	vertical-align: text-bottom;
+}
+
+.icon-copy-alias{
+	background: url('../images/icons/copiar.png') no-repeat center center;
+	display: inline-block;
+	width: 40px;
+	height: 40px;
+	vertical-align: text-bottom;
+}
+
+.icon-active-alias{
+	background: url('../images/icons/activar.png') no-repeat center center;
+	display: inline-block;
+	width: 40px;
+	height: 40px;
+	vertical-align: text-bottom;
+}
+
+.icon-inactive-alias{
+	background: url('../images/icons/desactivar.png') no-repeat center center;
+	display: inline-block;
+	width: 40px;
+	height: 40px;
+	vertical-align: text-bottom;
+}
+
+.icon-delete-alias{
+	background: url('../images/icons/eliminar.png') no-repeat center center;
+	display: inline-block;
+	width: 40px;
+	height: 40px;
+	vertical-align: text-bottom;
+}
+
+.notification-icon {
+	width: 34px; /* Tamaño deseado del icono */
+	height: 10px;
+}
+
+
+.icon-profile-blue
+{
+	background: url('../images/icons/icon_profile_blue.png') no-repeat center center;
+	display: inline-block;
+	width: 53px;
+	height: 53px;
+	vertical-align: text-bottom;	
+	margin-right: 15px;	
+}
+
+.icon-profile-blue
+{
+	background: url('../images/icons/icon_pay_blue.png') no-repeat center center;
+	display: inline-block;
+	width: 53px;
+	height: 53px;
+	vertical-align: text-bottom;
+	margin-right: 15px;
+}
+
+.icon-direct-access-profile{
+	background: url('../images/icons/icon_direct_access_profile.png') no-repeat center center;
+	display: inline-block;
+	width: 13px;
+	height: 17px;
+	vertical-align: text-bottom;
+	margin-top: 1px;
+}
+
+.icon-show-contacts{
+	background: url('../images/icons/icon_direct_access_profile.png') no-repeat center center;
+	display: inline-block;
+	width: 25px;
+	height: 25px;
+	vertical-align: text-bottom;
+	margin-top: 5px;
+	margin-left: 5px;
+}
+
+.icon-favicon{
+	background: url('../images/icons/favicon-16x16.png') no-repeat center center;
+	display: inline-block;
+	width: 16px;
+	height: 16px;
+	vertical-align: text-bottom;
+	margin-top: 1px;
+}
+
+.icon-delete-contacts{
+	background: url('../images/icons/eliminar20x20.png') no-repeat center center;
+	display: inline-block;
+	width: 20px;
+	height: 20px;
+	vertical-align: text-bottom;
+	margin-top: 1px;
+}
+
+.image-mail
+{
+	background: url('../images/icons/image_mail.png') no-repeat center center;
+	display: inline-block;
+	width: 355px;
+	height: 50px;
+	vertical-align: text-bottom;	
+	margin-right: 15px;	
+}
+.image-number-phone
+{
+	background: url('../images/icons/image_sms.png') no-repeat center center;
+	display: inline-block;
+	width: 355px;
+	height: 50px;
+	vertical-align: text-bottom;	
+	margin-right: 15px;	
+}
+.icon-option-account-transfer
+{
+	background: url('../images/icons/icon_option_account_transfer.png') no-repeat center center;
+	display: inline-block;
+	width: 50px;
+	height: 50px;
+	vertical-align: text-bottom;	
+    margin-right: 10px;	
+}
+.icon-option-account-payment-set
+{
+	background: url('../images/icons/icon_option_account_payment_set.png') no-repeat center center;
+	display: inline-block;
+	width: 50px;
+	height: 50px;
+	vertical-align: text-bottom;	
+    margin-right: 10px;	
+}
+.icon-option-account-payment-ips
+{
+	background: url('../images/icons/icon_option_account_payment_ips.png') no-repeat center center;
+	display: inline-block;
+	width: 50px;
+	height: 50px;
+	vertical-align: text-bottom;	
+    margin-right: 10px;	
+}
+.icon-option-account-payment-services
+{
+	background: url('../images/icons/icon_option_account_payment_services.png') no-repeat center center;
+	display: inline-block;
+	width: 50px;
+	height: 50px;
+	vertical-align: text-bottom;	
+    margin-right: 10px;	
+}
+.icon-option-account-payment-custom
+{
+	background: url('../images/icons/icon_option_account_payment_custom.png') no-repeat center center;
+	display: inline-block;
+	width: 50px;
+	height: 50px;
+	vertical-align: text-bottom;	
+    margin-right: 10px;	
+}
+.icon-option-account-movement
+{
+	background: url('../images/icons/icon_option_account_movement.png') no-repeat center center;
+	display: inline-block;
+	width: 50px;
+	height: 50px;
+	vertical-align: text-bottom;	
+    margin-right: 10px;	
+}
+.icon-option-loan-detail
+{
+	background: url('../images/icons/icon_option_loan_detail.png') no-repeat center center;
+	display: inline-block;
+	width: 50px;
+	height: 50px;
+	vertical-align: text-bottom;	
+    margin-right: 10px;	
+}
+.icon-option-card-payment
+{
+	background: url('../images/icons/icon_option_card_payment.png') no-repeat center center;
+	display: inline-block;
+	width: 50px;
+	height: 50px;
+	vertical-align: text-bottom;	
+    margin-right: 10px;	
+}
+.icon-home
+{
+	background: url('../images/icons/icon_home.png') no-repeat center center;
+	display: inline-block;
+	width: 65px;
+	height: 32px;
+	vertical-align: text-top;
+	border-radius: 6px 6px 0px 0px;
+	cursor: pointer;
+	opacity: 0.7;
+}
+
+.icon-home:hover {
+	opacity: 1;
+}
+
+.icon-home.selected {
+	opacity: 1;
+}
+
+.icon-home.selected:hover {
+	cursor: auto;
+}
+
+.icon-home-white
+{
+	background: url('../images/icons/icon_home_white.png') no-repeat center center;
+	display: inline-block;
+	width: 65px;
+	height: 10px;
+	vertical-align: text-bottom;
+	border-radius: 10px 10px 0px 0px;
+	opacity: 0.7;
+}
+
+.icon-home-white:hover {
+	opacity: 1;
+}
+
+.icon-home-white.selected {
+	opacity: 1;
+}
+
+.icon-saving-bank-blue
+{
+	background: url('../images/icons/icon_saving_bank_blue.png') no-repeat center center;
+	display: inline-block;
+	height: 53px;
+	width: 53px;
+	vertical-align: text-bottom;	
+	margin-right: 5px;	
+	background-size: 100%;
+}
+.icon-current-account-blue
+{
+	background: url('../images/icons/icon_current_account_blue.png') no-repeat center center;
+	display: inline-block;
+	height: 53px;
+	width: 53px;
+	vertical-align: text-bottom;	
+	margin-right: 5px;	
+}
+.icon-download
+{
+	background: url('../images/icons/icon_download.png') no-repeat center center;
+	display: inline-block;
+	width: 20px;
+	height: 21px;
+	vertical-align: text-top;
+	cursor: pointer;
+}
+.icon-download-2
+{
+	background: url('../images/icons/download.svg') no-repeat center center;
+	display: inline-block;
+	width: 15px;
+	height: 16px;
+	vertical-align: text-top;
+	cursor: pointer;
+}
+.icon-arrow-operations-blue
+{
+	background: url('../images/icons/icon_arrow_operations_blue.png') no-repeat center center;
+	display: inline-block;
+	position: absolute;
+	right:-12px;
+	width: 12px;
+	height: 28px;
+	vertical-align: text-bottom;
+}
+.icon-direct-access-cas-module-blue{
+	background: url('../images/icons/mod_cas_blue.png') no-repeat center center;
+	display: inline-block;
+	position: absolute;
+	right:-12px;
+	width: 12px;
+	height: 28px;
+	vertical-align: text-bottom;
+
+}
+
+.icon-arrow-admin-patch{
+	margin-top: 0px;
+}
+.icon-arrow-right
+{
+	background: url('../images/icons/icon_arrow_right.png') no-repeat center center;
+	display: inline-block;
+	width: 8px;
+	height: 15px;
+	vertical-align: middle;
+	cursor: pointer;
+}
+.icon-arrow-left
+{
+	background: url('../images/icons/icon_arrow_left.png') no-repeat center center;
+	display: inline-block;
+	width: 8px;
+	height: 15px;
+	vertical-align: middle;
+	cursor: pointer;
+}
+.icon-arrow-bottom
+{
+	background: url('../images/icons/icon_arrow_bottom.png') no-repeat center center;
+	display: inline-block;
+	width: 15px;
+	height: 9px;
+	vertical-align: middle;
+	cursor: pointer;
+}
+.icon-arrow-top
+{
+	background: url('../images/icons/icon_arrow_top.png') no-repeat center center;
+	display: inline-block;
+	width: 15px;
+	height: 9px;
+	vertical-align: middle;
+	cursor: pointer;
+}
+.icon-smartphone-big
+{
+	background: url('../images/icons/icon_smartphone_big.png') no-repeat center center;
+	display: inline-block;
+	width: 100%;
+	height: 100%;
+	vertical-align: middle;
+}
+
+.icon-payloan-step-one
+{
+	background: url('../images/icons/icon_paso1_transfer_large.png') no-repeat center center;
+	display: inline-block;
+	width: 100%;
+	height: 100%;
+	vertical-align: middle;
+}
+.icon-limit-step-one {
+	background: url('../images/icons/icon_limit_configuration_gray.png') no-repeat center center;
+	display: inline-block;
+	width: 100%;
+	height: 100%;
+	vertical-align: middle;
+}
+
+.icon-transfer-step-one
+{
+	background: url('../images/icons/icon_paso1_transfer_large.png') no-repeat center center;
+	display: inline-block;
+	width: 100%;
+	height: 100%;
+	vertical-align: middle;
+}
+.icon-cas-step-one-large
+{
+	background: url('../images/icons/mod_cas_gray_large.png') no-repeat center center;
+	display: inline-block;
+	width: 100%;
+	height: 100%;
+	vertical-align: middle;
+}
+
+.icon-cas-step-one
+{
+	background: url('../images/icons/mod_cas_gray.png') no-repeat center center;
+	display: inline-block;
+	width: 100%;
+	height: 100%;
+	vertical-align: middle;
+}
+
+.icon-payment-request-step-one
+{
+	background: url('../images/icons/icon_paso1_payment_large.png') no-repeat center center;
+	display: inline-block;
+	width: 100%;
+	height: 100%;
+	vertical-align: middle;
+}
+
+.icon-payloan-step-one-small
+{
+	background: url('../images/icons/icon_paso1_transfer_small.png') no-repeat center center;
+	display: block;
+	margin: auto;
+	width: 60px;
+	height: 100%;
+	vertical-align: middle;
+}
+
+.icon-limit-step-one-small {
+	background: url('../images/icons/icon_limit_configuration_gray.png') no-repeat center center;
+	display: block;
+	margin: auto;
+	width: 60px;
+	height: 100%;
+	vertical-align: middle;
+}
+
+.icon-limit-step-one-extra-small {
+	background: url('../images/icons/icon_limit_configuration_gray.png') no-repeat;
+	display: inline-block;
+	width: 15px;
+	height: 21px;
+}
+
+.icon-transfer-step-one-small
+{
+	background: url('../images/icons/icon_paso1_transfer_small.png') no-repeat center center;
+	display: block;
+	margin: auto;
+	width: 60px;
+	height: 100%;
+	vertical-align: middle;
+}
+
+.icon-transfer-step-one-extra-small
+{
+	background: url('../images/icons/icon_paso1_transfer_extra_small.png') no-repeat;
+	display: inline-block;
+	width: 15px;
+	height: 21px;
+}
+
+.icon-transfer-step-two
+{
+	background: url('../images/icons/icon_paso2_large.png') no-repeat center center;
+	display: inline-block;
+	width: 100%;
+	height: 100%;
+	vertical-align: middle;
+}
+
+.icon-transfer-step-two-small
+{
+	background: url('../images/icons/icon_paso2_small.png') no-repeat center center;
+	display: block;
+	margin: auto;
+	width: 50%;
+	height: 60px;
+	vertical-align: middle;
+}
+.icon-beneficiary-small{
+	background: url('../images/icons/icon_beneficiary_small.png') no-repeat center center;
+	display: block;
+	margin: auto;
+	width: 50%;
+	height: 100%;
+	vertical-align: middle;
+}
+.icon-transfer-step-three
+{
+	background: url('../images/icons/icon_paso3.png') no-repeat center center;
+	display: inline-block;
+	width: 100%;
+	height: 100%;
+	vertical-align: middle;
+}
+.icon-beneficiary-step-three
+{
+	background: url('../images/icons/icon_beneficiary_large.png') no-repeat center center;
+	display: inline-block;
+	width: 100%;
+	height: 100%;
+	vertical-align: middle;
+}
+
+.icon-beneficiary-international-step-three
+{
+	background: url('../images/icons/beneficiary_great.png') no-repeat center center;
+	display: inline-block;
+	width: 100%;
+	height: 100%;
+	vertical-align: middle;
+}
+
+.icon-beneficiary-international-step-three-small{
+	background: url('../images/icons/beneficiary_small.png') no-repeat center center;
+	display: inline-block;
+	width: 100%;
+	height: 100%;
+	vertical-align: middle;
+}
+.icon-beneficiary-step-three-small{
+	background: url('../images/icons/icon_beneficiary_small.png') no-repeat center center;
+	display: inline-block;
+	width: 100%;
+	height: 100%;
+	vertical-align: middle;
+}
+
+.icon-transfer-step-three-small
+{
+	background: url('../images/icons/icon_paso3_small.png') no-repeat center center;
+	display: block;
+	width: 50%;
+	height: 60px;
+	vertical-align: middle;
+	margin:auto;
+}
+
+.icon-end-transfer-download{
+	background:url('../images/icons/icon_end_transfer_download.png') no-repeat center center;
+	display: block;
+	width: 100%;
+	height: 32px;
+	vertical-align: middle;
+	margin:auto;
+}
+
+.icon-zip-great-download{
+	background:url('../images/icons/zip-great.png') no-repeat center center;
+	display: block;
+	width: 100%;
+	height: 32px;
+	vertical-align: middle;
+	margin:auto;
+}
+
+.icon-end-transfer-mail{
+	background:url('../images/icons/icon_end_transfer_mail.png') no-repeat center center;
+	display: block;
+	width: 100%;
+	height: 32px;
+	vertical-align: middle;
+	margin:auto;
+}
+
+.icon-end-transfer-sms{
+	background:url('../images/icons/icon_end_transfer_sms.png') no-repeat center center;
+	display: block;
+	width: 100%;
+	height: 32px;
+	vertical-align: middle;
+	margin:auto;
+}
+
+
+.icon-iOS
+{
+	background: url('../images/icons/icon_iOS.png') no-repeat center center;
+	display: inline-block;
+	width: 20px;
+	height: 23px;
+	vertical-align: middle;
+}
+.icon-android
+{
+	background: url('../images/icons/icon_android.png') no-repeat center center;
+	display: inline-block;
+	width: 20px;
+	height: 23px;
+	vertical-align: middle;
+}
+.icon-smartphone-small
+{
+	background: url('../images/icons/icon_smartphone_small.png') no-repeat center center;
+	display: inline-block;
+	width: 100%;
+	height: 100%;
+	vertical-align: middle;
+}
+.icon-QR-code
+{
+	background: url('../images/icons/icon_QR_code.html') no-repeat center center;
+	display: inline-block;
+	width: 100%;
+	height: 63%;
+	vertical-align: middle;
+}
+.icon-home-blue
+{
+	background: url('../images/icons/icon_home_blue.png') no-repeat center center;
+	display: inline-block;
+	width: 53px;
+	height: 53px;
+	vertical-align: text-bottom;	
+	margin-right: 15px;	
+}
+.icon-download-white{
+	background: url('../images/icons/icon_download_white.png') no-repeat center center;
+	display: inline-block;
+	width: 20px;
+	height: 21px;
+	vertical-align: middle;
+	cursor: pointer;
+}
+
+.icon-swift{
+	background: url('../images/icons/icon-swift.png') no-repeat center center;
+	display: inline-block;
+	width: 21px;
+	height: 21px;
+	vertical-align: middle;
+	cursor: pointer;
+}
+
+.icon-download-gray{
+	background: url('../images/icons/icon_download_gray.png') no-repeat center center;
+	display: inline-block;
+	width: 20px;
+	height: 21px;
+	vertical-align: middle;
+	cursor: pointer;
+}
+
+.icon-check
+{
+	background: url('../images/icons/icon_white.html') no-repeat center center;
+	display: inline-block;
+	width: 41px;
+	height: 41px;
+	vertical-align: text-bottom;
+	margin-right: 10px;
+	margin-left: 10px;
+}
+
+.icon-direct-access-pay-card
+{
+	background: url('../images/icons/icon_direct_access_pay_card.png') no-repeat center center;
+	display: inline-block;
+	width: 34px;
+	height: 28px;
+	vertical-align: text-bottom;	
+    margin-right: 0px;		
+}
+.icon-direct-access-cash-advance
+{
+	background: url('../images/icons/icon_direct_access_cash_advance.png') no-repeat center center;
+	display: inline-block;
+	width: 45px;
+	height: 28px;
+	vertical-align: text-bottom;	
+    margin-right: 10px;	
+    margin-left: 10px;	
+}
+.icon-losen-token
+{
+	background: url('../images/icons/icon_lose_token.png') no-repeat center center;
+	display: inline-block;
+	width: 40px;
+	height: 36px;
+	vertical-align: bottom;	
+	margin-right: 15px;	
+}
+.icon-big-alert
+{
+	background: url('../images/icons/icon_big_alert.png') no-repeat center center;
+	display: inline-block;
+	width: 40px;
+	height: 36px;
+	vertical-align: bottom;	
+	margin-right: 10px;	
+}
+.icon-app-store
+{
+	background: url('../images/icons/icon_app_store.png') no-repeat center center;
+	display: inline-block;
+	width: 32px;
+	height: 32px;
+	vertical-align: text-bottom;	
+}
+.icon-play-store
+{
+	background: url('../images/icons/icon_play_store.png') no-repeat center center;
+	display: inline-block;
+	width: 30px;
+	height: 30px;
+	vertical-align: text-bottom;		
+}
+.icon-arrow-right-orange
+{
+	background: url('../images/icons/icon_arrow_right_orange.png') no-repeat center center;
+	display: inline-block;
+	width: 36px;
+	height: 26px;
+	vertical-align: text-bottom;		
+	position: relative;
+	margin-left: 50px;	
+}
+.icon-qr-code-scanner-step-1
+{
+	background: url('../images/icons/icon_qr_code_scanner_1.png') no-repeat center center;
+	display: inline-block;
+	width: 188px;
+	height: 121px;
+	vertical-align: middle;
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+.icon-qr-code-scanner-step-2
+{
+	background: url('../images/icons/icon_qr_code_scanner_2.png') no-repeat center center;
+	display: inline-block;
+	width: 188px;
+	height: 121px;
+	vertical-align: middle;
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+.icon-big-logo-entrust
+{
+	background: url('../images/icons/icon_big_logo_entrust.png') no-repeat center center;
+	display: inline-block;
+	width: 100%;
+	height: 100%;
+	vertical-align: middle;
+}
+.icon-small-logo-entrust
+{
+	background: url('../images/icons/icon_logo_entrust.html') no-repeat center center;
+	display: inline-block;
+	width: 100%;
+	height: 100%;
+	vertical-align: middle;
+}
+.icon-pw-qr-code
+{
+	background: url('../images/icons/icon_pw_qr_code.png') no-repeat center center;
+	display: inline-block;
+	width: 188px;
+	height: 121px;
+	vertical-align: middle;
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+.icon-small-QR-code
+{
+	background: url('../images/icons/icon_small_QR_code.png') no-repeat center center;
+	display: inline-block;
+	width: 100%;
+	height: 100%;
+	vertical-align: middle;
+}
+.icon-name-identification
+{
+	background: url('../images/icons/icon_name_identification.png') no-repeat center center;
+	display: inline-block;
+	width: 188px;
+	height: 121px;
+	vertical-align: middle;
+	margin-top: 10px;
+	margin-bottom: 10px;	
+}
+.icon-pin-active
+{
+	background: url('../images/icons/icon_pin_active.png') no-repeat center center;
+	display: inline-block;
+	width: 188px;
+	height: 121px;
+	vertical-align: middle;
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+.icon-big-pin-active
+{
+	background: url('../images/icons/icon_big_pin_active.png') no-repeat center center;
+	display: inline-block;
+	width: 100%;
+	height: 100%;
+	vertical-align: middle;
+}
+.icon-small-pin-active
+{
+	background: url('../images/icons/icon_small_pin_active.png') no-repeat center center;
+	display: inline-block;
+	width: 100%;
+	height: 100%;
+	vertical-align: middle;
+}
+.icon-register-code
+{
+	background: url('../images/icons/icon_register_code.png') no-repeat center center;
+	display: inline-block;
+	width: 188px;
+	height: 121px;
+	vertical-align: middle;
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+.icon-big-register-code
+{
+	background: url('../images/icons/icon_big_register_code.png') no-repeat center center;
+	display: inline-block;
+	width: 100%;
+	height: 100%;
+	vertical-align: middle;
+}
+.icon-qr-code-scanner-android-step-1
+{
+	background: url('../images/icons/icon_qr_code_scanner_android_1.png') no-repeat center center;
+	display: inline-block;
+	width: 188px;
+	height: 121px;
+	vertical-align: middle;
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+.icon-qr-code-scanner-android-step-2
+{
+	background: url('../images/icons/icon_qr_code_scanner_android_2.png') no-repeat center center;
+	display: inline-block;
+	width: 188px;
+	height: 121px;
+	vertical-align: middle;
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+.icon-pw-qr-code-android
+{
+	background: url('../images/icons/icon_pw_qr_code_android.png') no-repeat center center;
+	display: inline-block;
+	width: 188px;
+	height: 121px;
+	vertical-align: middle;
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+.icon-name-identification-android
+{
+	background: url('../images/icons/icon_name_identification_android.png') no-repeat center center;
+	display: inline-block;
+	width: 188px;
+	height: 121px;
+	vertical-align: middle;
+	margin-top: 10px;
+	margin-bottom: 10px;	
+}
+.icon-pin-active-android
+{
+	background: url('../images/icons/icon_pin_active_android.png') no-repeat center center;
+	display: inline-block;
+	width: 188px;
+	height: 121px;
+	vertical-align: middle;
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+.icon-big-pin-active-android
+{
+	background: url('../images/icons/icon_big_pin_active_android.png') no-repeat center center;
+	display: inline-block;
+	width: 100%;
+	height: 100%;
+	vertical-align: middle;
+}
+.icon-small-pin-active-android
+{
+	background: url('../images/icons/icon_small_pin_active_android.png') no-repeat center center;
+	display: inline-block;
+	width: 100%;
+	height: 100%;
+	vertical-align: middle;
+}
+.icon-register-code-android
+{
+	background: url('../images/icons/icon_register_code_android.png') no-repeat center center;
+	display: inline-block;
+	width: 188px;
+	height: 121px;
+	vertical-align: middle;
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+.icon-big-register-code-android
+{
+	background: url('../images/icons/icon_big_register_code_android.png') no-repeat center center;
+	display: inline-block;
+	width: 100%;
+	height: 100%;
+	vertical-align: middle;
+}
+.icon-services-payment-step-two{
+	background: url('../images/icons/services_payment_categories_great.png') no-repeat center center;
+	display: inline-block;
+	width: 100%;
+	height: 100%;
+	vertical-align: middle;
+}
+.icon-services-payment-step-two-small{
+	background: url('../images/icons/services_payment_categories_small.png') no-repeat center center;
+	display: block;
+	margin: auto;
+	height: 100%;
+	vertical-align: middle;
+}
+.img-default-services img:before{
+	display: block;
+	margin: auto;
+	height: 100%;
+	vertical-align: middle;
+	background: url('../images/icons/services_payment_categories_small.png') no-repeat center center;
+}
+.img-serv-payment-clasification{
+	display: block;
+	margin: auto;
+	top: 30%;
+    position: absolute;
+    left: 40%;
+	vertical-align: middle;
+}
+.img-SERV_PUB{
+	background: url('../images/icons/SERV_PUB.png') no-repeat center center;
+	height: 45px;
+	vertical-align: text-bottom;
+}
+
+.img-SERV_INM{
+	background: url('../images/icons/SERV_INM.png') no-repeat center center;
+	height: 45px;
+	vertical-align: text-bottom;
+}
+.img-SERV_EDI{
+	background: url('../images/icons/SERV_EDI.png') no-repeat center center;
+	height: 45px;
+	vertical-align: text-bottom;
+}
+.img-SERV_AUT{
+	background: url('../images/icons/SERV_AUT.png') no-repeat center center;
+	height: 45px;
+	vertical-align: text-bottom;
+}
+.img-SERV_ELE{
+	background: url('../images/icons/SERV_ELE.png') no-repeat center center;
+	height: 45px;
+	vertical-align: text-bottom;
+}
+.img-SERV_FIN{
+	background: url('../images/icons/SERV_FIN.png') no-repeat center center;
+	height: 45px;
+	vertical-align: text-bottom;
+}
+
+.img-SERV_TEL{
+	background: url('../images/icons/SERV_TEL.png') no-repeat center center;
+	height: 45px;
+	vertical-align: text-bottom;
+}
+.img-SERV_SEG{
+	background: url('../images/icons/SERV_SEG.png') no-repeat center center;
+	height: 45px;
+	vertical-align: text-bottom;
+}
+.img-SERV_OTR{
+	background: url('../images/icons/SERV_OTR.png') no-repeat center center;
+	height: 45px;
+	vertical-align: text-bottom;
+}
+.img-SERV_COO{
+	background: url('../images/icons/SERV_COO.png') no-repeat center center;
+	height: 45px;
+	vertical-align: text-bottom;
+}
+.img-SERV_EDU{
+	background: url('../images/icons/SERV_EDU.png') no-repeat center center;
+	height: 45px;
+	vertical-align: text-bottom;
+}
+.img-SERV_MED{
+	background: url('../images/icons/SERV_MED.png') no-repeat center center;
+	height: 45px;
+	vertical-align: text-bottom;
+}
+
+.icon_attach_file{
+	background: url('../images/icons/icon_attach_file.png') no-repeat center center;
+	height: 18px;
+	display:block;
+	width:10px;
+	float:right;
+	cursor:pointer;
+}
+.icon-beneficiary-manual{
+	background: url('../images/icons/icon_saved_beneficiary.png') no-repeat center center;
+	height: 21px;
+	display:block;
+	bottom:5px;
+	vertical-align: text-bottom;
+}
+
+.icon-EUR{
+	background: url('../images/icons/icon_EUR.jpg') no-repeat center center;
+	display: inline-block;
+	width: 50px;
+	height: 25px;
+}
+
+.icon-USD{
+	background: url('../images/icons/icon_USD.jpg') no-repeat center center;
+	display: inline-block;
+	width: 50px;
+	height: 25px;
+}
+.icon-ARP{
+	background: url('../images/icons/icon_ARG.jpg') no-repeat center center;
+	display: inline-block;
+	width: 50px;
+	height: 25px;
+}
+.icon-BRL{
+	background: url('../images/icons/icon_REAL.jpg') no-repeat center center;
+	display: inline-block;
+	width: 50px;
+	height: 25px;
+}
+
+.icon-delete{
+	background: url('../images/icons/icon-delete.png') no-repeat center center;
+	display: inline-block;
+	width: 16px;
+	height: 16px;
+	vertical-align: text-bottom;
+	margin-bottom: 4px;
+	float: right;
+	cursor: pointer;
+}
+.icon-card-step-one{
+	background: url('../images/icons/card_pay_great.png') no-repeat center center;
+	display: inline-block;
+	width: 100%;
+	height: 100%;
+	vertical-align: middle;
+}
+.icon-card-step-one-small{
+	background: url('../images/icons/card_pay_small.png') no-repeat center center;
+	display: block;
+	margin: auto;
+	height: 100%;
+	vertical-align: middle;
+}
+
+.icon-pencil{
+	background: url('../images/icons/icon_pencil.png') no-repeat center center;
+	display: block;
+	margin: auto;
+	height: 19px;
+	width: 18px;
+	vertical-align: middle;
+}
+
+.icon-pencil-error{
+	background: url('../images/icons/icon_pencil_error.png') no-repeat center center;
+	display: block;
+	margin: auto;
+	height: 19px;
+	width: 18px;
+	vertical-align: middle;
+}
+
+
+.icon-checkbookReq-step-two
+{
+	background: url('../images/icons/icon_checkbook_request_great.png') no-repeat center center;
+	display: inline-block;
+	width: 100%;
+	height: 100%;
+	vertical-align: middle;
+}
+
+.icon-checkbookReq-step-two-small
+{
+	background: url('../images/icons/icon_checkbook_request_small.png') no-repeat center center;
+	display: inline-block;
+	width: 100%;
+	height: 100%;
+	vertical-align: middle;
+}
+
+
+.icon-admin-new-rol
+{
+	background: url('../images/icons/admin/crear_nuevo_rol.png') no-repeat center center;
+	display: inline-block;
+	width: 32px;
+	height: 29px;
+	vertical-align: middle;
+	cursor: pointer;
+}
+
+.icon-admin-edit-rol
+{
+	background: url('../images/icons/admin/editar_roles.png') no-repeat center center;
+	display: inline-block;
+	width: 32px;
+	height: 29px;
+	vertical-align: middle;
+	cursor: pointer;
+}
+.icon-admin-list-users
+{
+	background: url('../images/icons/admin/lista_de_usuarios.png') no-repeat center center;
+	display: inline-block;
+	width: 22px;
+	height: 29px;
+	vertical-align: middle;
+	cursor: pointer;
+}
+
+.icon-direct-access-messaging-configuration-white{
+	background: url('../images/icons/icon_messaging_configuration_white.png') no-repeat center center;
+	display: inline-block;
+	width: 47px;
+	height: 30px;
+	margin-right: 0px;	
+	
+}
+.icon-direct-access-devolution-white{
+	background: url('../images/icons/icon_direct_access_devolution.png') no-repeat center center;
+	display: inline-block;
+	width: 47px;
+	height: 30px;
+	margin-right: 0px;
+
+}
+
+.icon-direct-access-request-devolution-white{
+	background: url('../images/icons/icon_request_devolution_white.png') no-repeat center center;
+	display: inline-block;
+	width: 47px;
+	height: 30px;
+	margin-right: 0px;
+
+}
+
+
+.icon-direct-access-request-payment-white{
+	background: url('../images/icons/icon_request_payment_white.png') no-repeat center center;
+	display: inline-block;
+	width: 47px;
+	height: 30px;
+	margin-right: 0px;
+
+}
+
+.icon-direct-access-cas-module-white{
+	background: url('../images/icons/mod_cas_white.png') no-repeat center center;
+	display: inline-block;
+	width: 47px;
+	height: 30px;
+	margin-right: 0px;
+
+}
+
+
+.icon-admin-blue
+{
+	background: url('../images/icons/admin/icon_admin_blue.png') no-repeat center center;
+	display: inline-block;
+	width: 41px;
+	height: 41px;
+	vertical-align: middle;
+	margin-right: 0px;
+}
+
+.icon-eye{
+	position: absolute;
+	right: 0;
+	padding: 8px 15px;
+	cursor: pointer;
+}
+
+/* Iconos OST */
+.icon-option-delete-ost {
+	background: url('../images/icons/devices/Eliminarmdpi.png') no-repeat center center;
+	display: inline-block;
+	width: 50px;
+	height: 50px;
+	vertical-align: middle;
+}
+
+.icon-option-change-pin-ost {
+	background: url('../images/icons/ost/llave_gris.png') no-repeat center center;
+	display: inline-block;
+	width: 50px;
+	height: 50px;
+	vertical-align: middle;
+}
+
+.icon-option-modify-ost {
+	background: url('../images/icons/ost/ic_editar_gris.png') no-repeat center center;
+	display: inline-block;
+	width: 50px;
+	height: 50px;
+	vertical-align: middle;
+}
+
+.icon-option-lock-ost {
+	background: url('../images/icons/ost/bloquear_gris.png') no-repeat center center;
+	display: inline-block;
+	width: 50px;
+	height: 50px;
+	vertical-align: middle;
+}
+
+.icon-option-unlock-ost {
+	background: url('../images/icons/ost/desbloquear_gris.png') no-repeat center center;
+	display: inline-block;
+	width: 50px;
+	height: 50px;
+	vertical-align: middle;
+}
+
+.icon-ost-step-two {
+	background: url('../images/icons/devices/Celularmdpi.png') no-repeat center center;
+	display: inline-block;
+	width: 100%;
+	height: 100%;
+	vertical-align: middle;
+}
+
+
+.icon-option-ost {
+	display: inline-block;
+	width: 50px;
+	height: 50px;
+	vertical-align: text-bottom;
+	margin-right: 10px;
+}
+
+.icon-lock {
+	background: url('../images/icons/ost/bloquear_blanco.png') no-repeat center center;
+}
+
+.icon-unlock {
+	background: url('../images/icons/ost/desbloquear_blanco.png') no-repeat center center;
+}
+
+.icon-del {
+	background: url('../images/icons/ost/ic_eliminar_blanco.png') no-repeat center center;
+}
+
+.icon-modify {
+	background: url('../images/icons/ost/ic_editar_blanco.png') no-repeat center center;
+}
+
+.icon-regenerate {
+	background: url('../images/icons/icon_submenu_change_passwoard.png') no-repeat center center;
+}
+
+.icon-access-key-gray {
+    background: url('../images/icons/icon_access_key_gray.png') no-repeat center;
+    background-size: contain;
+    display: inline-block;
+    width: 45px;
+    height: 45px;
+}
+
+.icon-direct-access-limit-configuration-white{
+	background: url('../images/icons/icon_limit_configuration_white.png') no-repeat center center;
+	display: inline-block;
+	width: 47px;
+	height: 33px;
+	margin-right: 0px;
+}
+
+.icon-user-grey {
+    background: url('../images/icons/admin/user-icon-grey.png') no-repeat center center;
+	background-size: contain;
+	display: inline-block;
+    width: 32px;
+    height: 32px;
+    vertical-align: middle;
+    cursor: pointer;
+}
+.icon-application-grey {
+	background: url('../images/icons/admin/application-icon-grey.png') no-repeat center center;
+	background-size: contain;
+	display: inline-block;
+	width: 32px;
+	height: 32px;
+	vertical-align: middle;
+	cursor: pointer;
+}
+
+

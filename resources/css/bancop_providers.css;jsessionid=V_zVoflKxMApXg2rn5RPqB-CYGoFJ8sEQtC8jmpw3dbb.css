@@ -1,0 +1,22 @@
+.modal-add-provider-width{
+    width: 70%;
+}
+
+.modal-payment-details{
+    margin-top: 7%;
+    width: 50%;
+}
+
+.modal-request-details{
+    margin-top: 7%;
+    width: 43%;
+}
+
+.invoice-item div{
+    display: inline;
+}
+
+.margin-invoices{
+    margin-bottom: 15px;
+    margin-top: 15px;
+}
